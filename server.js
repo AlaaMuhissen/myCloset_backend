@@ -2,7 +2,8 @@ import express from "express"
 import dotenv from "dotenv";
 import { errorHandler } from "./middleware/errorHandler.js";
 
-import cors from 'cors'
+import cors from 'cors';
+import closetRouter from './routes/closet.routes.js'
 import connectDB from "./config/db.js";
 const server = express();
 server.use(cors());
@@ -14,7 +15,7 @@ server.use(express.json());
 
 //Routers
 
-// server.use("/api/..." , ...Router)
+server.use("/api/closet" , closetRouter)
 
 
 
