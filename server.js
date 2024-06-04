@@ -4,6 +4,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 
 import cors from 'cors';
 import closetRouter from './routes/closet.routes.js'
+import outfitRouter from './routes/outfitState.routes.js'
 import connectDB from "./config/db.js";
 const server = express();
 server.use(cors());
@@ -16,6 +17,7 @@ server.use(express.json());
 //Routers
 
 server.use("/api/closet" , closetRouter)
+server.use("/api/outfit" , outfitRouter)
 
 
 
