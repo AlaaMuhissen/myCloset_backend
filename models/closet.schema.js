@@ -22,10 +22,11 @@ const positionSchema = new mongoose.Schema({
 
 const outfitItemsSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
-    itemsId: [String],
+    itemsId: [mongoose.Schema.Types.ObjectId],
     colorPalette: [String],
     sizes: [sizeSchema],
     positions: [positionSchema],
+    imgUrl: String
 });
 
 const categoriesSchema = new mongoose.Schema({
@@ -38,14 +39,8 @@ const categoriesSchema = new mongoose.Schema({
 });
 
 const outfitsSchema = new mongoose.Schema({
-    Summer: {
-        type: Map,
-        of: [outfitItemsSchema]
-    },
-    Winter: {
-        type: Map,
-        of: [outfitItemsSchema]
-    }
+    Summer: [outfitItemsSchema],
+    Winter: [outfitItemsSchema]
 });
 
 const closetSchema = new mongoose.Schema({
@@ -55,6 +50,6 @@ const closetSchema = new mongoose.Schema({
     outfits: outfitsSchema
 });
 
-const Closet = mongoose.model("userClothes", closetSchema);
+const Closet = mongoose.model("userclothes", closetSchema);
 
 export default Closet;
