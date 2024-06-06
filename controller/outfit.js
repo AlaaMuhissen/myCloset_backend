@@ -28,6 +28,8 @@ export const getOutfit = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 }
+
+
 export const getAllSpecificSeasonOutfits = async (req, res) => {
     try {
         const { userId, season } = req.params;
@@ -39,18 +41,30 @@ export const getAllSpecificSeasonOutfits = async (req, res) => {
         }
 
         const outfits = closet.outfits[season];
-       
+        console.log(outfits);
+
         if (!outfits) {
             return res.status(404).json({ message: "There are no outfits for this season" });
         }
 
-        // const outfitsArray = Object.values(outfits); // Convert nested object to array
+        // Function to handle Map conversion during JSON.stringify
+        const replacer = (key, value) => {
+            if (value instanceof Map) {
+                return Object.fromEntries(value);
+            }
+            return value;
+        };
 
-        res.status(200).json(outfits);
+        const jsonString = JSON.stringify(outfits, replacer);
+        const convertedOutfits = JSON.parse(jsonString);
+
+        res.status(200).json(convertedOutfits);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 }
+
+
 export const getAllOutfits = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -71,6 +85,8 @@ export const getAllOutfits = async (req, res) => {
         // for (const season in outfits) {
         //     allOutfits[season] = Object.values(outfits[season]); // Convert nested object to array
         // }
+
+       // console.log("all outfit== " ,allOutfits )
 
         res.status(200).json(outfits);
     } catch (err) {
