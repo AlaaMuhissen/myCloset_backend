@@ -80,7 +80,7 @@ export const getAllOutfits = async (req, res) => {
 export const editOutfit = async (req, res) => {
     try {
         const { userId, season, outfitNumber } = req.params;
-        const { itemsId, colorPalette, sizes, positions, imgUrl } = req.body;
+        const { itemsId, colorPalette, sizes, positions, imgUrl ,itemsSource } = req.body;
 
         // Construct the update object
         let updateObject = {};
@@ -112,6 +112,15 @@ export const editOutfit = async (req, res) => {
                 return acc;
             }, {});
         }
+        if (itemsSource) {
+            updateObject[`outfits.${season}.${outfitNumber}.itemsSource`] = itemsSource.reduce((acc, source) => {
+                acc[itemsSource._id] = {
+                    category: source.category,
+                    subCategory: source.subCategory
+                };
+                return acc;
+            }, {});
+        }
 
         // Update the outfit in the user's closet
         const updatedCloset = await Closet.findOneAndUpdate(
@@ -135,7 +144,7 @@ export const editOutfit = async (req, res) => {
 export const addOutfit = async (req, res) => {
     try {
         const { userId, season} = req.params;
-        const {itemsId, colorPalette, sizes, positions, imgUrl } = req.body;
+        const {itemsId, colorPalette, sizes, positions, imgUrl,itemsSource } = req.body;
 
           // Create a new outfit
           const newOutfit = {
@@ -144,6 +153,7 @@ export const addOutfit = async (req, res) => {
             colorPalette,
             sizes,
             positions,
+            itemsSource,
             imgUrl
         };
         const outfitId = newOutfit._id;

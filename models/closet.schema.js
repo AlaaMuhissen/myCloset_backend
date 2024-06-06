@@ -21,6 +21,11 @@ const positionSchema = new mongoose.Schema({
     y: Number,
 }, { _id: false });
 
+const itemsSourceSchema = new mongoose.Schema({
+    category: String,
+    subCategory: String,
+}, { _id: false });
+
 // Outfit items schema
 const outfitItemsSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
@@ -33,6 +38,10 @@ const outfitItemsSchema = new mongoose.Schema({
     positions: {
         type: Map,
         of: positionSchema
+    },
+    itemsSource: {
+        type: Map,
+        of: itemsSourceSchema
     },
     imgUrl: String
 });
