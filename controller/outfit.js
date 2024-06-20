@@ -1,5 +1,6 @@
 import Closet from "../models/closet.schema.js";
 import mongoose from "mongoose";
+
 export const getOutfit = async (req, res) => {
     try {
         const { userId, season, outfitNumber } = req.params;
@@ -9,13 +10,14 @@ export const getOutfit = async (req, res) => {
         if (!closet) {
             return res.status(404).json({ message: "Closet not found" });
         }
-
+       
         const outfits = closet.outfits[season];
        
         if (!outfits) {
-            return res.status(404).json({ message: "Outfits not found" });
+            return res.status(404).json({ message: "Outfits not found FOR this Season" });
         }
-        const outfit = outfits.find(item => item._id.toString() === outfitNumber);
+
+        const outfit = outfits.get(outfitNumber);
 
         if (!outfit) {
             return res.status(404).json({ message: "Outfit not found" });
@@ -26,6 +28,7 @@ export const getOutfit = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 }
+
 
 export const getAllSpecificSeasonOutfits = async (req, res) => {
     try {
@@ -38,15 +41,29 @@ export const getAllSpecificSeasonOutfits = async (req, res) => {
         }
 
         const outfits = closet.outfits[season];
-       
+        console.log(outfits);
+
         if (!outfits) {
-            return res.status(404).json({ message: "There is no outFits for this season" });
+            return res.status(404).json({ message: "There are no outfits for this season" });
         }
-        res.status(200).json(outfits);
+
+        // Function to handle Map conversion during JSON.stringify
+        const replacer = (key, value) => {
+            if (value instanceof Map) {
+                return Object.fromEntries(value);
+            }
+            return value;
+        };
+
+        const jsonString = JSON.stringify(outfits, replacer);
+        const convertedOutfits = JSON.parse(jsonString);
+
+        res.status(200).json(convertedOutfits);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 }
+
 
 export const getAllOutfits = async (req, res) => {
     try {
@@ -63,13 +80,15 @@ export const getAllOutfits = async (req, res) => {
         if (!outfits) {
             return res.status(404).json({ message: "There are no outfits" });
         }
-        
-        const allOutfits = {};
-        for (const season in outfits) {
-            allOutfits[season] = [...outfits[season].values()]; // Convert Map values to array
-        }
-        
-        res.status(200).json(allOutfits);
+
+        // const allOutfits = {};
+        // for (const season in outfits) {
+        //     allOutfits[season] = Object.values(outfits[season]); // Convert nested object to array
+        // }
+
+       // console.log("all outfit== " ,allOutfits )
+
+        res.status(200).json(outfits);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -77,107 +96,101 @@ export const getAllOutfits = async (req, res) => {
 export const editOutfit = async (req, res) => {
     try {
         const { userId, season, outfitNumber } = req.params;
-        const { itemsId, colorPalette, sizes, positions, imgUrl } = req.body;
+        const { itemsId, colorPalette, sizes, positions, imgUrl ,itemsSource } = req.body;
 
-        const closet = await Closet.findOne({ userId });
+        // Construct the update object
+        let updateObject = {};
 
-        if (!closet) {
-            return res.status(404).json({ message: "Closet not found" });
+        if (itemsId) {
+            updateObject[`outfits.${season}.${outfitNumber}.itemsId`] = itemsId.map(id => new mongoose.Types.ObjectId(id));
         }
-
-        const outfits = closet.outfits[season];
-        
-        if (!outfits) {
-            return res.status(404).json({ message: "Outfits for this season not found" });
+        if (colorPalette) {
+            updateObject[`outfits.${season}.${outfitNumber}.colorPalette`] = colorPalette;
         }
-
-        // Find the outfit by _id
-        const outfit = outfits.find(item => item._id.toString() === outfitNumber);
-
-        if (!outfit) {
-            return res.status(404).json({ message: "Outfit not found" });
+        if (imgUrl) {
+            updateObject[`outfits.${season}.${outfitNumber}.imgUrl`] = imgUrl;
         }
-
-        // Update fields if they exist in the request body
-        if (itemsId) outfit.itemsId = itemsId.map(id => new mongoose.Types.ObjectId(id));
-        if (colorPalette) outfit.colorPalette = colorPalette;
-        if (imgUrl) outfit.imgUrl = imgUrl;
-
-        // Update sizes if provided
         if (sizes) {
-            outfit.sizes = sizes.map(size => ({
-                _id: new mongoose.Types.ObjectId(size._id), // Ensure each _id is an ObjectId
-                width: parseFloat(size.width),
-                height: parseFloat(size.height)
-            }));
+            updateObject[`outfits.${season}.${outfitNumber}.sizes`] = sizes.reduce((acc, size) => {
+                acc[size._id] = {
+                    width: parseFloat(size.width),
+                    height: parseFloat(size.height)
+                };
+                return acc;
+            }, {});
         }
-
-        // Update positions if provided
         if (positions) {
-            outfit.positions = positions.map(position => ({
-                _id: new mongoose.Types.ObjectId(position._id), // Ensure each _id is an ObjectId
-                x: parseFloat(position.x),
-                y: parseFloat(position.y)
-            }));
+            updateObject[`outfits.${season}.${outfitNumber}.positions`] = positions.reduce((acc, position) => {
+                acc[position._id] = {
+                    x: parseFloat(position.x),
+                    y: parseFloat(position.y)
+                };
+                return acc;
+            }, {});
+        }
+        if (itemsSource) {
+            updateObject[`outfits.${season}.${outfitNumber}.itemsSource`] = itemsSource.reduce((acc, source) => {
+                acc[itemsSource._id] = {
+                    category: source.category,
+                    subCategory: source.subCategory
+                };
+                return acc;
+            }, {});
         }
 
-        // Save the updated closet
-        await closet.save();
-        res.status(200).json(outfit);
+        // Update the outfit in the user's closet
+        const updatedCloset = await Closet.findOneAndUpdate(
+            { userId },
+            { $set: updateObject },
+            { new: true }
+        );
+
+        if (!updatedCloset) {
+            return res.status(404).json({ message: 'Closet not found' });
+        }
+
+        const updatedOutfit = updatedCloset.outfits[season].get(outfitNumber);
+
+        res.status(200).json(updatedOutfit);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
+
 export const addOutfit = async (req, res) => {
     try {
-        const { userId, season } = req.params;
-        const { itemsId, colorPalette, sizes, positions, imgUrl } = req.body;
-    
-        let closet = await Closet.findOne({ userId });
+        const { userId, season} = req.params;
+        const {itemsId, colorPalette, sizes, positions, imgUrl,itemsSource } = req.body;
 
-        if (!closet) {
-            closet = new Closet({ 
-                _id: new mongoose.Types.ObjectId(),
-                userId, 
-                categories: {}, 
-                outfits: { Summer: [], Winter: [] } 
-            });
-        }
-
-        const outfitId = new mongoose.Types.ObjectId(); // Generate new ObjectId for the outfit
-
-        // Convert sizes object into an array of size objects with ObjectId
-        const formattedSizes = sizes.map(size => ({
-            _id: new mongoose.Types.ObjectId(size._id), // Ensure each _id is an ObjectId
-            width: parseFloat(size.width),
-            height: parseFloat(size.height)
-        }));
-
-        // Convert positions object into an array of position objects with ObjectId
-        const formattedPositions = positions.map(position => ({
-            _id: new mongoose.Types.ObjectId(position._id), // Ensure each _id is an ObjectId
-            x: parseFloat(position.x),
-            y: parseFloat(position.y)
-        }));
-
-        const outfit = {
-            _id: outfitId,
-            itemsId: itemsId.map(id => new mongoose.Types.ObjectId(id)), // Ensure each itemId is an ObjectId
+          // Create a new outfit
+          const newOutfit = {
+            _id: new mongoose.Types.ObjectId(),
+            itemsId,
             colorPalette,
-            sizes: formattedSizes,
-            positions: formattedPositions,
+            sizes,
+            positions,
+            itemsSource,
             imgUrl
         };
+        const outfitId = newOutfit._id;
+        // Update the user's closet with the new outfit
+        const updatedCloset = await Closet.findOneAndUpdate(
+            { userId },
+            { 
+                $set: {
+                    [`outfits.${season}.${outfitId}`]: newOutfit
+                }
+            },
+            { new: true, upsert: true } // `upsert: true` will create the document if it doesn't exist
+        );
 
-        if (!closet.outfits[season]) {
-            closet.outfits[season] = [];
+        if (!updatedCloset) {
+            return res.status(404).json({ message: 'Closet not found' });
         }
 
-        closet.outfits[season].push(outfit); // Add the new outfit to the array
-
-        await closet.save();
-        res.status(200).json(closet.outfits[season]);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(201).json({ message: 'Outfit added successfully', closet: updatedCloset });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
+     

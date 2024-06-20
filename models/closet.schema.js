@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+// Item schema
 const itemSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     imgUrl: String,
@@ -8,45 +9,76 @@ const itemSchema = new mongoose.Schema({
     fabric: String
 });
 
+// Size schema
 const sizeSchema = new mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
     width: Number,
     height: Number,
-});
+}, { _id: false });
 
+// Position schema
 const positionSchema = new mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
     x: Number,
     y: Number,
-});
+}, { _id: false });
 
+const itemsSourceSchema = new mongoose.Schema({
+    category: String,
+    subCategory: String,
+}, { _id: false });
+
+// Outfit items schema
 const outfitItemsSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     itemsId: [mongoose.Schema.Types.ObjectId],
     colorPalette: [String],
-    sizes: [sizeSchema],
-    positions: [positionSchema],
+    sizes: {
+        type: Map,
+        of: sizeSchema
+    },
+    positions: {
+        type: Map,
+        of: positionSchema
+    },
+    itemsSource: {
+        type: Map,
+        of: itemsSourceSchema
+    },
     imgUrl: String
 });
 
+// Categories schema
 const categoriesSchema = new mongoose.Schema({
     Tops: {
-        T_Shirts: [itemSchema]
+        T_Shirts: {
+            type: Map,
+            of: itemSchema
+        }
     },
     Bottoms: {
-        Jeans: [itemSchema]
+        Jeans: {
+            type: Map,
+            of: itemSchema
+        }
     }
 });
 
+// Outfits schema
 const outfitsSchema = new mongoose.Schema({
-    Summer: [outfitItemsSchema],
-    Winter: [outfitItemsSchema]
+    Summer: {
+        type: Map,
+        of: outfitItemsSchema
+    },
+    Winter: {
+        type: Map,
+        of: outfitItemsSchema
+    }
 });
 
+// Main closet schema
 const closetSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     categories: categoriesSchema,
-    userId: String,
+    userId: { type: String },
     outfits: outfitsSchema
 });
 
