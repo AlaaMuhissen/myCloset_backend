@@ -6,7 +6,8 @@ const itemSchema = new mongoose.Schema({
     imgUrl: String,
     seasons: [Number],
     colors: [String],
-    fabric: String
+    fabric: String,
+    tags: [String]
 });
 
 // Size schema
@@ -49,7 +50,32 @@ const outfitItemsSchema = new mongoose.Schema({
 // Categories schema
 const categoriesSchema = new mongoose.Schema({
     Tops: {
-        T_Shirts: {
+        T_shirt: {
+            type: Map,
+            of: itemSchema
+        },
+        Pullover: {
+            type: Map,
+            of: itemSchema
+        },
+        Hoodie: {
+            type: Map,
+            of: itemSchema
+        },
+        Blouse: {
+            type: Map,
+            of: itemSchema
+        },
+       
+        Shirt: {
+            type: Map,
+            of: itemSchema
+        },
+        Sweater: {
+            type: Map,
+            of: itemSchema
+        },
+        Basic: {
             type: Map,
             of: itemSchema
         }
@@ -58,8 +84,132 @@ const categoriesSchema = new mongoose.Schema({
         Jeans: {
             type: Map,
             of: itemSchema
+        },
+        Pants: {
+            type: Map,
+            of: itemSchema
+        },
+        Skirt: {
+            type: Map,
+            of: itemSchema
+        },
+        Short: {
+            type: Map,
+            of: itemSchema
         }
-    }
+    },
+    Outwear: {
+        Jacket: {
+            type: Map,
+            of: itemSchema
+        },
+        Coat: {
+            type: Map,
+            of: itemSchema
+        },
+        Vests: {
+            type: Map,
+            of: itemSchema
+        }
+    },
+    Shoes: {
+        Casual_Shoes: {
+            type: Map,
+            of: itemSchema
+        },
+        Formal_Shoes: {
+            type: Map,
+            of: itemSchema
+        },
+        Boots: {
+            type: Map,
+            of: itemSchema
+        },
+        Sandal: {
+            type: Map,
+            of: itemSchema
+        },
+        Flip_Flops: {
+            type: Map,
+            of: itemSchema
+        },
+        Heels: {
+            type: Map,
+            of: itemSchema
+        },
+        Athletic_Shoes: {
+            type: Map,
+            of: itemSchema
+        }
+    },
+    Bags: {
+        Shoulder_Bag: {
+            type: Map,
+            of: itemSchema
+        },
+        Crossbody_Bag: {
+            type: Map,
+            of: itemSchema
+        },
+        Backpack: {
+            type: Map,
+            of: itemSchema
+        },
+        Wallet: {
+            type: Map,
+            of: itemSchema
+        },
+        Beach_Bag: {
+            type: Map,
+            of: itemSchema
+        },
+        Laptop_Bag: {
+            type: Map,
+            of: itemSchema
+        }
+    },
+    Head_wear: {
+        Hat: {
+            type: Map,
+            of: itemSchema
+        },
+        Scarf: {
+            type: Map,
+            of: itemSchema
+        }
+    },
+    Jewelry: {
+        Necklace: {
+            type: Map,
+            of: itemSchema
+        },
+        Earring: {
+            type: Map,
+            of: itemSchema
+        },
+        Ring: {
+            type: Map,
+            of: itemSchema
+        },
+        Watches: {
+            type: Map,
+            of: itemSchema
+        },
+        Bracelet: {
+            type: Map,
+            of: itemSchema
+        },
+        Glasses: {
+            type: Map,
+            of: itemSchema
+        },
+    },
+    Other_items: {
+        others: {
+            type: Map,
+            of: itemSchema
+        } 
+    },
 });
 
 // Outfits schema
