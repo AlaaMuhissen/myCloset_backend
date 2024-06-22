@@ -74,10 +74,10 @@ export const getUserSubCategorySpecificItems = async (req, res) => {
 export const addNewClotheItem = async (req, res) => {
     try {
         const { userId, category, subCategory } = req.params;
-        const { imgUrl, seasons, colors, fabric } = req.body;
+        const { imgUrl, seasons, colors, fabric ,tags } = req.body;
         console.log(imgUrl, seasons, colors, fabric)
         // Validate input
-        if (!imgUrl || !seasons || !colors || !fabric) {
+        if (!imgUrl || !seasons || !colors || !fabric || !tags) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
@@ -87,7 +87,8 @@ export const addNewClotheItem = async (req, res) => {
             imgUrl,
             seasons,
             colors,
-            fabric
+            fabric,
+            tags
         };
         console.log(newItem)
         // Find the user's closet

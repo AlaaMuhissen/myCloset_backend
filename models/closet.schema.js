@@ -6,7 +6,8 @@ const itemSchema = new mongoose.Schema({
     imgUrl: String,
     seasons: [Number],
     colors: [String],
-    fabric: String
+    fabric: String,
+    tags: [String]
 });
 
 // Size schema
@@ -49,28 +50,32 @@ const outfitItemsSchema = new mongoose.Schema({
 // Categories schema
 const categoriesSchema = new mongoose.Schema({
     Tops: {
-        T_Shirts: {
+        T_shirt: {
             type: Map,
             of: itemSchema
         },
-        Hoodies: {
+        Pullover: {
             type: Map,
             of: itemSchema
         },
-        Blouses: {
+        Hoodie: {
+            type: Map,
+            of: itemSchema
+        },
+        Blouse: {
             type: Map,
             of: itemSchema
         },
        
-        Shirts: {
+        Shirt: {
             type: Map,
             of: itemSchema
         },
-        Sweaters: {
+        Sweater: {
             type: Map,
             of: itemSchema
         },
-        Basics: {
+        Basic: {
             type: Map,
             of: itemSchema
         }
@@ -80,21 +85,25 @@ const categoriesSchema = new mongoose.Schema({
             type: Map,
             of: itemSchema
         },
-        Skirts: {
+        Pants: {
             type: Map,
             of: itemSchema
         },
-        Shorts: {
+        Skirt: {
+            type: Map,
+            of: itemSchema
+        },
+        Short: {
             type: Map,
             of: itemSchema
         }
     },
     Outwear: {
-        Jackets: {
+        Jacket: {
             type: Map,
             of: itemSchema
         },
-        Coats: {
+        Coat: {
             type: Map,
             of: itemSchema
         },
@@ -116,11 +125,19 @@ const categoriesSchema = new mongoose.Schema({
             type: Map,
             of: itemSchema
         },
-        Sandals_and_Flip_Flops: {
+        Sandal: {
             type: Map,
             of: itemSchema
         },
-        Dress_Shoes: {
+        Flip_Flops: {
+            type: Map,
+            of: itemSchema
+        },
+        Heels: {
+            type: Map,
+            of: itemSchema
+        },
+        Athletic_Shoes: {
             type: Map,
             of: itemSchema
         }
@@ -152,32 +169,40 @@ const categoriesSchema = new mongoose.Schema({
         }
     },
     Head_wear: {
-        Hats: {
+        Hat: {
             type: Map,
             of: itemSchema
         },
-        Hejab: {
+        Scarf: {
             type: Map,
             of: itemSchema
         }
     },
     Jewelry: {
-        Necklaces: {
+        Necklace: {
             type: Map,
             of: itemSchema
         },
-        Earrings: {
+        Earring: {
             type: Map,
             of: itemSchema
         },
-        Rings: {
+        Ring: {
             type: Map,
             of: itemSchema
         },
         Watches: {
             type: Map,
             of: itemSchema
-        }
+        },
+        Bracelet: {
+            type: Map,
+            of: itemSchema
+        },
+        Glasses: {
+            type: Map,
+            of: itemSchema
+        },
     },
     Other_items: {
         others: {
