@@ -96,7 +96,7 @@ export const getAllOutfits = async (req, res) => {
 export const editOutfit = async (req, res) => {
     try {
         const { userId, season, outfitNumber } = req.params;
-        const { itemsId, colorPalette, sizes, positions, imgUrl ,itemsSource } = req.body;
+        const { itemsId, colorPalette, sizes, positions, imgUrl, itemsSource } = req.body;
 
         // Construct the update object
         let updateObject = {};
@@ -111,28 +111,28 @@ export const editOutfit = async (req, res) => {
             updateObject[`outfits.${season}.${outfitNumber}.imgUrl`] = imgUrl;
         }
         if (sizes) {
-            updateObject[`outfits.${season}.${outfitNumber}.sizes`] = sizes.reduce((acc, size) => {
-                acc[size._id] = {
-                    width: parseFloat(size.width),
-                    height: parseFloat(size.height)
+            updateObject[`outfits.${season}.${outfitNumber}.sizes`] = Object.keys(sizes).reduce((acc, key) => {
+                acc[key] = {
+                    width: parseFloat(sizes[key].width),
+                    height: parseFloat(sizes[key].height)
                 };
                 return acc;
             }, {});
         }
         if (positions) {
-            updateObject[`outfits.${season}.${outfitNumber}.positions`] = positions.reduce((acc, position) => {
-                acc[position._id] = {
-                    x: parseFloat(position.x),
-                    y: parseFloat(position.y)
+            updateObject[`outfits.${season}.${outfitNumber}.positions`] = Object.keys(positions).reduce((acc, key) => {
+                acc[key] = {
+                    x: parseFloat(positions[key].x),
+                    y: parseFloat(positions[key].y)
                 };
                 return acc;
             }, {});
         }
         if (itemsSource) {
-            updateObject[`outfits.${season}.${outfitNumber}.itemsSource`] = itemsSource.reduce((acc, source) => {
-                acc[itemsSource._id] = {
-                    category: source.category,
-                    subCategory: source.subCategory
+            updateObject[`outfits.${season}.${outfitNumber}.itemsSource`] = Object.keys(itemsSource).reduce((acc, key) => {
+                acc[key] = {
+                    category: itemsSource[key].category,
+                    subCategory: itemsSource[key].subCategory
                 };
                 return acc;
             }, {});
@@ -156,6 +156,7 @@ export const editOutfit = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
 
 export const addOutfit = async (req, res) => {
     try {
