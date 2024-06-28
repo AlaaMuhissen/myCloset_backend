@@ -178,6 +178,8 @@ function filterItems(data, filters, isThereACategory) {
     return matchedItems;
 }
 
+
+
 export const filterCloset = async (req, res) => {
     const { category, subCategory, colors, seasons, tags, fabric } = req.body;
     try {
@@ -210,3 +212,75 @@ export const filterCloset = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error });
     }
 }
+
+function getColors(data, isThereACategory) {
+    const matchedItems = [];
+
+    function traverseItems(itemsMap) {
+        if (itemsMap instanceof Map) {
+            itemsMap.forEach((item, key) => {
+                matchedItems.push(...item.colors); // Spread item.colors into the array
+            });
+        }
+    }
+
+    function traverseCategories(categories) {
+        for (let category in categories) {
+            if (category === '_id') continue; // Skip the _id field
+
+            let subCategories = categories[category];
+            if (typeof subCategories !== 'object' || subCategories === null) continue; // Skip non-object subCategories
+
+            // Loop through sub-categories
+            for (let subCategory in subCategories) {
+                let itemsMap = subCategories[subCategory];
+                traverseItems(itemsMap);
+            }
+        }
+    }
+
+    // Determine if the data is structured as categories or items directly
+    if (isThereACategory) {
+        for (let subCategory in data) {
+            let itemsMap = data[subCategory];
+            traverseItems(itemsMap);
+        }
+    } else {
+        traverseCategories(data);
+    }
+
+    return matchedItems;
+}
+
+export const getClothesColors = async (req, res) => {
+    const { category, subCategory } = req.body;
+    try {
+        // Find all closet documents
+        const closets = await Closet.find();
+        let allColors = [];
+
+        closets.forEach(closet => {
+            let items = closet.categories;
+
+            if (category) {
+                items = items[category];
+                if (subCategory) {
+                    items = items[subCategory];
+                }
+            }
+
+            if (items) {
+                const colors = getColors(items, !!category);
+                allColors = allColors.concat(colors);
+            }
+        });
+
+        // Flatten the nested array and remove duplicates
+        const uniqueColors = Array.from(new Set(allColors.flat()));
+
+        res.status(200).json(uniqueColors);
+    } catch (error) {
+        console.error("error ", error);
+        res.status(500).json({ message: 'Server Error', error });
+    }
+};
