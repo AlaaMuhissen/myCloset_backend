@@ -161,7 +161,7 @@ function filterItems(data, filters, subCategoriesArray) {
             let subCategories = categories[category];
             if (typeof subCategories !== 'object' || subCategories === null) continue; // Skip non-object subCategories
            
-            if(subCategoriesArray.length === 0)
+            if(!subCategoriesArray || subCategoriesArray.length === 0)
             { for (let subCategory in subCategories) {
                 let itemsMap = subCategories[subCategory];
                 traverseItems(itemsMap, filters);
