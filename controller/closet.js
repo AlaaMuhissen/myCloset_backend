@@ -128,7 +128,7 @@ export const addNewClotheItem = async (req, res) => {
     }
 };
 
-function filterItems(data, filters, isThereACategory) {
+function filterItems(data, filters, subCategoriesArray) {
     const matchedItems = [];
 
     function checkItem(item, filters) {
@@ -159,29 +159,21 @@ function filterItems(data, filters, isThereACategory) {
 
             // Loop through sub-categories
             for (let subCategory in subCategories) {
-                let itemsMap = subCategories[subCategory];
-                traverseItems(itemsMap, filters);
+                if (!subCategoriesArray || subCategoriesArray.includes(subCategory)) {
+                    let itemsMap = subCategories[subCategory];
+                    traverseItems(itemsMap, filters);
+                }
             }
         }
     }
 
-    // Determine if the data is structured as categories or items directly
-    if (isThereACategory) {
-        for (let subCategory in data) {
-            let itemsMap = data[subCategory];
-            traverseItems(itemsMap, filters);
-        }
-    } else {
-        traverseCategories(data, filters);
-    }
+    traverseCategories(data, filters);
 
     return matchedItems;
 }
 
-
-
 export const filterCloset = async (req, res) => {
-    const { category, subCategory, colors, seasons, tags, fabric } = req.body;
+    const { subCategories, colors, seasons, tags, fabric } = req.body;
     try {
         // Build the filter object
         const filters = { colors, seasons, tags, fabric };
@@ -193,25 +185,17 @@ export const filterCloset = async (req, res) => {
 
         closets.forEach(closet => {
             let items = closet.categories;
-
-            if (category) {
-                items = items[category];
-                if (subCategory) {
-                    items = items[subCategory];
-                }
-            }
-
-            if (items) {
-                const itemsWithFilters = filterItems(items, filters, !!category);
-                filteredItems = filteredItems.concat(itemsWithFilters);
-            }
+            const itemsWithFilters = filterItems(items, filters, subCategories);
+            filteredItems = filteredItems.concat(itemsWithFilters);
         });
 
         res.status(200).json(filteredItems);
     } catch (error) {
+        console.error("error", error)
         res.status(500).json({ message: 'Server Error', error });
     }
 }
+
 
 function getColors(data, isThereACategory) {
     const matchedItems = [];
