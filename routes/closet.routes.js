@@ -4,7 +4,7 @@ import { getUserClothes ,getUserSubCategoryItems ,getUserCategoryItems ,getUserS
 const router = Router();
 
 // Get a specific closet items by ID (All the categories)
-router.get("/filter/:userId" , filterCloset)
+router.post("/filter/:userId" , filterCloset)
 router.get("/getAllColors/:userId" , getClothesColors)
 router.get("/:userId", getUserClothes);
 router.get("/:userId/:category" , getUserCategoryItems)
