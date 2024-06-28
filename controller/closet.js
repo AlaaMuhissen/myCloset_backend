@@ -75,7 +75,7 @@ export const addNewClotheItem = async (req, res) => {
     try {
         const { userId, category, subCategory } = req.params;
         const { imgUrl, seasons, colors, fabric ,tags } = req.body;
-        console.log(imgUrl, seasons, colors, fabric)
+
         // Validate input
         if (!imgUrl || !seasons || !colors || !fabric || !tags) {
             return res.status(400).json({ message: "All fields are required" });
@@ -90,7 +90,7 @@ export const addNewClotheItem = async (req, res) => {
             fabric,
             tags
         };
-        console.log(newItem)
+     
         // Find the user's closet
         const closet = await Closet.findOne({ userId });
 
@@ -128,32 +128,26 @@ export const addNewClotheItem = async (req, res) => {
     }
 };
 
-function filterItems(data, filters ,isThereACategory) {
+function filterItems(data, filters, isThereACategory) {
     const matchedItems = [];
 
     function checkItem(item, filters) {
-        console.log(`item is ${item} and the filter is ${filters.fabric}`)
         const colorMatch = !filters.colors || filters.colors.every(color => item.colors.includes(color));
-        // Check if all bits set in filters.seasons are also set in item.seasons
         const seasonMatch = !filters.seasons || filters.seasons.every((bit, index) => bit === 0 || (item.seasons && item.seasons[index] === 1));
         const tagsMatch = !filters.tags || filters.tags.every(tag => item.tags.includes(tag));
         const fabricMatch = !filters.fabric || filters.fabric === item.fabric;
-        console.log(`fabricMatch ${fabricMatch}`)
+
         return colorMatch && seasonMatch && tagsMatch && fabricMatch;
     }
 
-    function traverseItems(data, filters) {
-        console.log(filters)
-        for (const subCategory in data) {
-            const itemsMap = data[subCategory];
-            if (itemsMap instanceof Map) {
-              itemsMap.forEach((item, key) => {
+    function traverseItems(itemsMap, filters) {
+        if (itemsMap instanceof Map) {
+            itemsMap.forEach((item, key) => {
                 if (checkItem(item, filters)) {
                     matchedItems.push(item);
                 }
-              });
-            }
-          }
+            });
+        }
     }
 
     function traverseCategories(categories, filters) {
@@ -161,10 +155,10 @@ function filterItems(data, filters ,isThereACategory) {
             if (category === '_id') continue; // Skip the _id field
 
             let subCategories = categories[category];
-           
+            if (typeof subCategories !== 'object' || subCategories === null) continue; // Skip non-object subCategories
+
             // Loop through sub-categories
             for (let subCategory in subCategories) {
-               
                 let itemsMap = subCategories[subCategory];
                 traverseItems(itemsMap, filters);
             }
@@ -173,7 +167,10 @@ function filterItems(data, filters ,isThereACategory) {
 
     // Determine if the data is structured as categories or items directly
     if (isThereACategory) {
-        traverseItems(data, filters);
+        for (let subCategory in data) {
+            let itemsMap = data[subCategory];
+            traverseItems(itemsMap, filters);
+        }
     } else {
         traverseCategories(data, filters);
     }
@@ -189,7 +186,7 @@ export const filterCloset = async (req, res) => {
 
         // Find all closet documents
         const closets = await Closet.find();
-        let isThereACategory = false;
+
         let filteredItems = [];
 
         closets.forEach(closet => {
@@ -197,21 +194,19 @@ export const filterCloset = async (req, res) => {
 
             if (category) {
                 items = items[category];
-                isThereACategory = true;
                 if (subCategory) {
                     items = items[subCategory];
                 }
             }
 
             if (items) {
-                const itemsWithFilters = filterItems(items, filters ,isThereACategory);
+                const itemsWithFilters = filterItems(items, filters, !!category);
                 filteredItems = filteredItems.concat(itemsWithFilters);
             }
         });
 
         res.status(200).json(filteredItems);
     } catch (error) {
-        console.error('error ' , error)
         res.status(500).json({ message: 'Server Error', error });
     }
 }
