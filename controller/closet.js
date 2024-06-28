@@ -132,6 +132,8 @@ function filterItems(data, filters, subCategoriesArray) {
     const matchedItems = [];
 
     function checkItem(item, filters) {
+        console.log("item ==> " , item)
+        console.log("filter ==> " , filters)
         const colorMatch = !filters.colors || filters.colors.every(color => item.colors.includes(color));
         const seasonMatch = !filters.seasons || filters.seasons.every((bit, index) => bit === 0 || (item.seasons && item.seasons[index] === 1));
         const tagsMatch = !filters.tags || filters.tags.every(tag => item.tags.includes(tag));
@@ -142,6 +144,7 @@ function filterItems(data, filters, subCategoriesArray) {
 
     function traverseItems(itemsMap, filters) {
         if (itemsMap instanceof Map) {
+            console.log("itemsMap ==> " , itemsMap)
             itemsMap.forEach((item, key) => {
                 if (checkItem(item, filters)) {
                     matchedItems.push(item);
@@ -151,33 +154,62 @@ function filterItems(data, filters, subCategoriesArray) {
     }
 
     function traverseCategories(categories, filters) {
+        console.log(categories)
         for (let category in categories) {
             if (category === '_id') continue; // Skip the _id field
 
             let subCategories = categories[category];
             if (typeof subCategories !== 'object' || subCategories === null) continue; // Skip non-object subCategories
-
-            // Loop through sub-categories
-            for (let subCategory in subCategories) {
-                if (!subCategoriesArray || subCategoriesArray.includes(subCategory)) {
-                    let itemsMap = subCategories[subCategory];
-                    traverseItems(itemsMap, filters);
+           
+            if(subCategoriesArray.length === 0)
+            { for (let subCategory in subCategories) {
+                let itemsMap = subCategories[subCategory];
+                traverseItems(itemsMap, filters);
+            }}
+            else{
+                for (let subCategory in subCategories) {
+                    if (subCategoriesArray.includes(subCategory)) {
+                        let itemsMap = subCategories[subCategory];
+                        traverseItems(itemsMap, filters);
+                    }
                 }
             }
         }
     }
 
-    traverseCategories(data, filters);
+    
+        traverseCategories(data, filters);
+ 
 
     return matchedItems;
 }
 
+
+const buildFilters = ({ colors, seasons, tags, fabric }) => {
+    const filters = {};
+    if (colors && colors.length > 0) {
+      filters.colors = colors;
+    }
+    if (seasons && seasons.length > 0) {
+      filters.seasons = seasons;
+    }
+    if (tags && tags.length > 0) {
+      filters.tags = tags;
+    }
+    if (fabric && fabric.length > 0) {
+      filters.fabric = fabric;
+    }
+    return filters;
+  };
+  
 export const filterCloset = async (req, res) => {
+    console.log("hello")
     const { subCategories, colors, seasons, tags, fabric } = req.body;
+    console.log(subCategories, colors, seasons, tags, fabric)
     try {
         // Build the filter object
-        const filters = { colors, seasons, tags, fabric };
-
+        const filters = buildFilters({ colors, seasons, tags, fabric });
+        console.log(filters);
         // Find all closet documents
         const closets = await Closet.find();
 
@@ -185,6 +217,7 @@ export const filterCloset = async (req, res) => {
 
         closets.forEach(closet => {
             let items = closet.categories;
+            console.log(items)
             const itemsWithFilters = filterItems(items, filters, subCategories);
             filteredItems = filteredItems.concat(itemsWithFilters);
         });
