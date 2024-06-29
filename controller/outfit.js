@@ -53,8 +53,7 @@ export const getAllSpecificSeasonOutfits = async (req, res) => {
         }
 
         const outfits = closet.outfits[season];
-        console.log(outfits);
-
+      
         if (!outfits) {
             return res.status(404).json({ message: "There are no outfits for this season" });
         }
@@ -92,13 +91,6 @@ export const getAllOutfits = async (req, res) => {
         if (!outfits) {
             return res.status(404).json({ message: "There are no outfits" });
         }
-
-        // const allOutfits = {};
-        // for (const season in outfits) {
-        //     allOutfits[season] = Object.values(outfits[season]); // Convert nested object to array
-        // }
-
-       // console.log("all outfit== " ,allOutfits )
 
         res.status(200).json(outfits);
     } catch (err) {
@@ -207,4 +199,83 @@ export const addOutfit = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-     
+
+export const deleteOutfit = async (req, res) => {
+    try {
+        const { userId, season } = req.params;
+        const { itemsId } = req.body; //outfit ids
+
+        const closet = await Closet.findOne({ userId });
+        if (!closet) return res.status(404).json({ message: "Item not found" });
+
+        const outfits = closet.outfits[season];
+
+        if (!outfits) {
+            return res.status(404).json({ message: "There are no outfits" });
+        }
+        
+        // Iterate over itemsId and delete the corresponding entries from the outfits map
+        itemsId.forEach(id => {
+            if (outfits.has(id)) {
+                outfits.delete(id);
+            }
+        });
+      
+        const deletedCount = itemsId.length
+        const updatedCloset = await Closet.findOneAndUpdate(
+            { userId },
+            {
+                $set: { [`outfits.${season}`]: outfits },
+                $inc: { outfitNumber: -deletedCount }
+            },
+            { new: true }
+        );
+    
+        if (!updatedCloset) {
+            return res.status(404).json({ message: "Closet not found" });
+        }
+
+        res.status(200).json({ message: 'Outfits deleted successfully', closet: updatedCloset });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+export const getOutfitIdsContainingItems = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { itemsId } = req.body;//clothe items ids
+    
+        const closet = await Closet.findOne({ userId });
+        if (!closet) return res.status(404).json({ message: "Closet not found" });
+
+        const seasons = ['Spring', 'Summer', 'Autumn', 'Winter'];
+        const result = [];
+
+        seasons.forEach(season => {
+            const outfits = closet.outfits[season];
+          
+            if (outfits) {
+                const outfitsContainingItems = [];
+                for (const [outfitId, outfit] of outfits) {
+                    const outfitItems = outfit.itemsId.map(itemId => itemId.toString());
+             
+                    const itemsIdStrings = itemsId.map(itemId => itemId.toString());
+              
+                    if (itemsIdStrings.some(itemId => outfitItems.includes(itemId))) {
+                        outfitsContainingItems.push(outfitId);
+                    }
+                }
+                if (outfitsContainingItems.length > 0) {
+                    result.push({
+                        season,
+                        outfitsId: outfitsContainingItems
+                    });
+                }
+            }
+        });
+
+        res.status(200).json(result);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

@@ -83,6 +83,46 @@ export const getUserSubCategorySpecificItems = async (req, res) => {
     }
 };
 
+export const deleteClotheItem = async (req, res) => {
+    try {
+        const { userId,category, subCategory  } = req.params;
+        const { itemsId } = req.body; //clothe items ids
+
+        const closet = await Closet.findOne({ userId });
+        if (!closet) return res.status(404).json({ message: "Item not found" });
+
+        const items = closet.categories?.[category]?.[subCategory];
+        if (!items) {
+            return res.status(404).json({ message: "There are no outfits" });
+        }
+        
+        // Iterate over itemsId and delete the corresponding entries from the outfits map
+        itemsId.forEach(id => {
+            if (items.has(id)) {
+                items.delete(id);
+            }
+        });
+      
+        const deletedCount = itemsId.length
+        const updatedCloset = await Closet.findOneAndUpdate(
+            { userId },
+            {
+                $set: { [`categories.${category}.${subCategory}`]: items },
+                $inc: { clothesNumber: -deletedCount }
+            },
+            { new: true }
+        );
+     
+        if (!updatedCloset) {
+            return res.status(404).json({ message: "Closet not found" });
+        }
+
+        res.status(200).json({ message: 'Clothes deleted successfully', closet: updatedCloset });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+}
+
 export const addNewClotheItem = async (req, res) => {
     try {
         const { userId, category, subCategory } = req.params;
