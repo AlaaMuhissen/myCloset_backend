@@ -105,7 +105,6 @@ export const addNewClotheItem = async (req, res) => {
         if (!closet.categories[category][subCategory]) {
             return res.status(400).json({ message: "Subcategory not found" });
         }
-
         const clotheId = newItem._id;
         // Update the user's closet with the new outfit
         const updatedCloset = await Closet.findOneAndUpdate(
@@ -113,7 +112,8 @@ export const addNewClotheItem = async (req, res) => {
             { 
                 $set: {
                     [`categories.${category}.${subCategory}.${clotheId}`]: newItem
-                }
+                },
+                  $inc: { clothesNumber: 1 }
             },
             { new: true, upsert: true } // `upsert: true` will create the document if it doesn't exist
         );
@@ -121,7 +121,8 @@ export const addNewClotheItem = async (req, res) => {
         if (!updatedCloset) {
             return res.status(404).json({ message: 'Closet not found' });
         }
-
+       
+        
         res.status(201).json({ message: 'Outfit added successfully', closet: updatedCloset });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -175,8 +176,6 @@ function filterItems(data, filters, subCategoriesArray) {
     const matchedItems = [];
 
     function checkItem(item, filters) {
-        console.log("item ==> " , item)
-        console.log("filter ==> " , filters)
         const colorMatch = !filters.colors || filters.colors.every(color => item.colors.includes(color));
         const seasonMatch = !filters.seasons || filters.seasons.every((bit, index) => bit === 0 || (item.seasons && item.seasons[index] === 1));
         const tagsMatch = !filters.tags || filters.tags.every(tag => item.tags.includes(tag));
@@ -187,7 +186,6 @@ function filterItems(data, filters, subCategoriesArray) {
 
     function traverseItems(itemsMap, filters) {
         if (itemsMap instanceof Map) {
-            console.log("itemsMap ==> " , itemsMap)
             itemsMap.forEach((item, key) => {
                 if (checkItem(item, filters)) {
                     matchedItems.push(item);
@@ -197,7 +195,6 @@ function filterItems(data, filters, subCategoriesArray) {
     }
 
     function traverseCategories(categories, filters) {
-        console.log(categories)
         for (let category in categories) {
             if (category === '_id') continue; // Skip the _id field
 
@@ -246,25 +243,20 @@ const buildFilters = ({ colors, seasons, tags, fabric }) => {
   };
   
 export const filterCloset = async (req, res) => {
-    console.log("hello")
+    const { userId} = req.params;
     const { subCategories, colors, seasons, tags, fabric } = req.body;
-    console.log(subCategories, colors, seasons, tags, fabric)
     try {
-        // Build the filter object
+
         const filters = buildFilters({ colors, seasons, tags, fabric });
-        console.log(filters);
-        // Find all closet documents
-        const closets = await Closet.find();
+       
+        const closet = await Closet.findOne({ userId });
 
         let filteredItems = [];
-
-        closets.forEach(closet => {
-            let items = closet.categories;
-            console.log(items)
-            const itemsWithFilters = filterItems(items, filters, subCategories);
-            filteredItems = filteredItems.concat(itemsWithFilters);
-        });
-
+        let items = closet.categories;
+     
+        const itemsWithFilters = filterItems(items, filters, subCategories);
+        filteredItems = filteredItems.concat(itemsWithFilters);
+    
         res.status(200).json(filteredItems);
     } catch (error) {
         console.error("error", error)
@@ -279,19 +271,18 @@ function getColors(data, isThereACategory) {
     function traverseItems(itemsMap) {
         if (itemsMap instanceof Map) {
             itemsMap.forEach((item, key) => {
-                matchedItems.push(...item.colors); // Spread item.colors into the array
+                matchedItems.push(...item.colors); 
             });
         }
     }
 
     function traverseCategories(categories) {
         for (let category in categories) {
-            if (category === '_id') continue; // Skip the _id field
-
+            if (category === '_id') continue; 
             let subCategories = categories[category];
-            if (typeof subCategories !== 'object' || subCategories === null) continue; // Skip non-object subCategories
+            if (typeof subCategories !== 'object' || subCategories === null) continue;
 
-            // Loop through sub-categories
+   
             for (let subCategory in subCategories) {
                 let itemsMap = subCategories[subCategory];
                 traverseItems(itemsMap);
@@ -313,13 +304,14 @@ function getColors(data, isThereACategory) {
 }
 
 export const getClothesColors = async (req, res) => {
+    const { userId} = req.params;
     const { category, subCategory } = req.body;
     try {
-        // Find all closet documents
-        const closets = await Closet.find();
+      
+        const closet = await Closet.findOne({ userId });
         let allColors = [];
 
-        closets.forEach(closet => {
+      
             let items = closet.categories;
 
             if (category) {
@@ -333,7 +325,7 @@ export const getClothesColors = async (req, res) => {
                 const colors = getColors(items, !!category);
                 allColors = allColors.concat(colors);
             }
-        });
+   
 
         // Flatten the nested array and remove duplicates
         const uniqueColors = Array.from(new Set(allColors.flat()));

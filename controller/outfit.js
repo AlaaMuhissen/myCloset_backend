@@ -180,7 +180,8 @@ export const addOutfit = async (req, res) => {
             { 
                 $set: {
                     [`outfits.${season}.${outfitId}`]: newOutfit
-                }
+                },
+                $inc: { outfitNumber: 1 }
             },
             { new: true, upsert: true } // `upsert: true` will create the document if it doesn't exist
         );

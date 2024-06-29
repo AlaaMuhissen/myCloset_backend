@@ -229,7 +229,15 @@ const closetSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     categories: categoriesSchema,
     userId: { type: String },
-    outfits: outfitsSchema
+    outfits: outfitsSchema,
+    clothesNumber : {
+        type: Number,
+        default : 0
+    },
+    outfitNumber : {
+        type: Number,
+        default : 0
+    }
 });
 
 const Closet = mongoose.model("userclothes", closetSchema);
