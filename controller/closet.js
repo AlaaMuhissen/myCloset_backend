@@ -128,6 +128,49 @@ export const addNewClotheItem = async (req, res) => {
     }
 };
 
+export const editClotheItem = async (req, res) => {
+    try {
+        const { userId, category, subCategory ,itemId} = req.params;
+        const { seasons, colors, fabric ,tags } = req.body;
+       
+        let updateObject = {};
+
+    
+        if (seasons) {
+            updateObject[`categories.${category}.${subCategory}.${itemId}.seasons`] = seasons;
+        }
+        if (colors) {
+            updateObject[`categories.${category}.${subCategory}.${itemId}.colors`] = colors;
+        }
+        if (fabric) {
+            updateObject[`categories.${category}.${subCategory}.${itemId}.fabric`] = fabric;
+        }
+        if (tags) {
+            updateObject[`categories.${category}.${subCategory}.${itemId}.tags`] = tags;
+        }
+
+        // Update the outfit in the user's closet
+        const updatedItem = await Closet.findOneAndUpdate(
+            { userId },
+            { $set: updateObject },
+            { new: true }
+        );
+
+        if (!updatedItem) {
+            return res.status(404).json({ message: 'Closet not found' });
+        }
+
+        const updatedOutfit = updatedItem.categories[category][subCategory].get(itemId);
+      
+        if (!updatedOutfit) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
+        res.status(200).json(updatedOutfit);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
 function filterItems(data, filters, subCategoriesArray) {
     const matchedItems = [];
 

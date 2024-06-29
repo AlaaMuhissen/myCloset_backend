@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getUserClothes ,getUserSubCategoryItems ,getUserCategoryItems ,getUserSubCategorySpecificItems,addNewClotheItem ,filterCloset ,getClothesColors} from "../controller/closet.js";
+import { getUserClothes ,getUserSubCategoryItems ,getUserCategoryItems ,getUserSubCategorySpecificItems,addNewClotheItem ,filterCloset ,getClothesColors ,editClotheItem} from "../controller/closet.js";
 
 const router = Router();
 
@@ -11,5 +11,6 @@ router.get("/:userId/:category" , getUserCategoryItems)
 router.get("/:userId/:category/:subCategory" , getUserSubCategoryItems)
 router.get("/:userId/:category/:subCategory/:itemId" , getUserSubCategorySpecificItems)
 router.post("/:userId/:category/:subCategory" , addNewClotheItem)
+router.put("/:userId/:category/:subCategory/:itemId" , editClotheItem)
 
 export default router;
