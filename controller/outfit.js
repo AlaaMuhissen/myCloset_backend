@@ -250,13 +250,13 @@ export const getOutfitIdsContainingItems = async (req, res) => {
 
         const seasons = ['Spring', 'Summer', 'Autumn', 'Winter'];
         const result = [];
+        const outfitsContainingItemsImgs = [];
 
         seasons.forEach(season => {
             const outfits = closet.outfits[season];
           
             if (outfits) {
                 const outfitsContainingItems = [];
-                const outfitsContainingItemsImgs = [];
                 for (const [outfitId, outfit] of outfits) {
                     const outfitItems = outfit.itemsId.map(itemId => itemId.toString());
              
@@ -270,14 +270,14 @@ export const getOutfitIdsContainingItems = async (req, res) => {
                 if (outfitsContainingItems.length > 0) {
                     result.push({
                         season,
-                        outfitImg : outfitsContainingItemsImgs,
                         outfitsId: outfitsContainingItems
-                    });
+                    },
+                );
                 }
             }
         });
 
-        res.status(200).json(result);
+        res.status(200).json({outfitData: result ,    outfitImg : outfitsContainingItemsImgs  } );
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
