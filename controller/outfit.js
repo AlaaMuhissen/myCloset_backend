@@ -256,6 +256,7 @@ export const getOutfitIdsContainingItems = async (req, res) => {
           
             if (outfits) {
                 const outfitsContainingItems = [];
+                const outfitsContainingItemsImgs = [];
                 for (const [outfitId, outfit] of outfits) {
                     const outfitItems = outfit.itemsId.map(itemId => itemId.toString());
              
@@ -263,11 +264,13 @@ export const getOutfitIdsContainingItems = async (req, res) => {
               
                     if (itemsIdStrings.some(itemId => outfitItems.includes(itemId))) {
                         outfitsContainingItems.push(outfitId);
+                        outfitsContainingItemsImgs.push(outfit.imgUrl);
                     }
                 }
                 if (outfitsContainingItems.length > 0) {
                     result.push({
                         season,
+                        outfitImg : outfitsContainingItemsImgs,
                         outfitsId: outfitsContainingItems
                     });
                 }
