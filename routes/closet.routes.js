@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { getUserClothes ,getUserSubCategoryItems ,getUserCategoryItems ,getUserSubCategorySpecificItems,addNewClotheItem ,filterCloset ,getClothesColors ,editClotheItem ,getClothesNumber, deleteClotheItem} from "../controller/closet.js";
+import { getUserClothes ,getUserSubCategoryItems ,getUserCategoryItems ,getUserSubCategorySpecificItems,addNewClotheItem ,filterCloset ,getClothesColors ,editClotheItem ,getClothesNumber, deleteClotheItem ,filterAndTransformCloset} from "../controller/closet.js";
 
 const router = Router();
 
 
 router.post("/filter/:userId" , filterCloset)
+router.post('/filterAndTransformCloset/:userId', filterAndTransformCloset);
 router.get("/getAllColors/:userId" , getClothesColors)
 router.get("/:userId/clothesNumber", getClothesNumber);
 router.get("/:userId", getUserClothes);

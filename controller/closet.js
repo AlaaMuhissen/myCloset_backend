@@ -236,15 +236,18 @@ function filterItems(data, filters, subCategoriesArray) {
         return colorMatch && seasonMatch && tagsMatch && fabricMatch;
     }
 
-    function traverseItems(itemsMap, filters) {
+    function traverseItems(itemsMap, filters , category, subCategory) {
         if (itemsMap instanceof Map) {
             itemsMap.forEach((item, key) => {
                 if (checkItem(item, filters)) {
-                    matchedItems.push(item);
+                    matchedItems.push({ ...item, category, subCategory });
                 }
             });
         }
     }
+
+  
+   
 
     function traverseCategories(categories, filters) {
         for (let category in categories) {
@@ -256,20 +259,19 @@ function filterItems(data, filters, subCategoriesArray) {
             if(!subCategoriesArray || subCategoriesArray.length === 0)
             { for (let subCategory in subCategories) {
                 let itemsMap = subCategories[subCategory];
-                traverseItems(itemsMap, filters);
+                traverseItems(itemsMap, filters, category, subCategory);
             }}
             else{
                 for (let subCategory in subCategories) {
                     if (subCategoriesArray.includes(subCategory)) {
                         let itemsMap = subCategories[subCategory];
-                        traverseItems(itemsMap, filters);
+                        traverseItems(itemsMap, filters, category, subCategory);
                     }
                 }
             }
         }
     }
 
-    
         traverseCategories(data, filters);
  
 
@@ -303,13 +305,14 @@ export const filterCloset = async (req, res) => {
        
         const closet = await Closet.findOne({ userId });
 
-        let filteredItems = [];
+     
         let items = closet.categories;
      
-        const itemsWithFilters = filterItems(items, filters, subCategories);
-        filteredItems = filteredItems.concat(itemsWithFilters);
-    
-        res.status(200).json(filteredItems);
+        const filteredItems = filterItems(items, filters, subCategories);
+        const cleanedItems = filteredItems.map(item => item._doc);
+
+        res.status(200).json(cleanedItems);
+       
     } catch (error) {
         console.error("error", error)
         res.status(500).json({ message: 'Server Error', error });
@@ -385,6 +388,53 @@ export const getClothesColors = async (req, res) => {
         res.status(200).json(uniqueColors);
     } catch (error) {
         console.error("error ", error);
+        res.status(500).json({ message: 'Server Error', error });
+    }
+};
+
+const transformFilteredItems = (filteredItems) => {
+    const transformedData = {};
+
+    filteredItems.forEach(item => {
+        const { category, subCategory } = item;
+        const { _id, colors } = item._doc;
+
+        if (!transformedData[category]) {
+            transformedData[category] = {};
+        }
+
+        if (!transformedData[category][subCategory]) {
+            transformedData[category][subCategory] = [];
+        }
+
+        transformedData[category][subCategory].push({
+            [_id]: colors
+        });
+    });
+
+    return transformedData;
+};
+
+
+export const filterAndTransformCloset = async (req, res) => {
+    const { userId } = req.params;
+    const { seasons, tags } = req.body;
+    try {
+        const filters = buildFilters({ seasons, tags });
+        const closet = await Closet.findOne({ userId });
+
+        if (!closet) {
+            return res.status(404).json({ message: 'Closet not found' });
+        }
+
+        const items = closet.categories;
+        const filteredItems = filterItems(items, filters, null); // Pass null to check all subcategories
+        // console.log(filteredItems);
+        const transformedData = transformFilteredItems(filteredItems);
+
+        res.status(200).json(transformedData);
+    } catch (error) {
+        console.error("error", error);
         res.status(500).json({ message: 'Server Error', error });
     }
 };
