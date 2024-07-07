@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
 
+const usageLogSchema = new mongoose.Schema({
+    date: { type: Date, required: true },
+}, { _id: false }); 
+
 // Item schema
 const itemSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
@@ -7,7 +11,8 @@ const itemSchema = new mongoose.Schema({
     seasons: [Number],
     colors: [String],
     fabric: String,
-    tags: [String]
+    tags: [String],
+    usageLog: [usageLogSchema] 
 });
 
 // Size schema
@@ -44,7 +49,9 @@ const outfitItemsSchema = new mongoose.Schema({
         type: Map,
         of: itemsSourceSchema
     },
-    imgUrl: String
+    imgUrl: String,
+    isAIOutfit : Boolean,
+    inFavorite:  { type: Boolean, default: false },
 });
 
 // Categories schema
@@ -76,6 +83,16 @@ const categoriesSchema = new mongoose.Schema({
             of: itemSchema
         },
         Basic: {
+            type: Map,
+            of: itemSchema
+        }
+    },
+    One_Piece: {
+        Dresses: {
+            type: Map,
+            of: itemSchema
+        },
+        Overalls: {
             type: Map,
             of: itemSchema
         }
@@ -224,11 +241,24 @@ const outfitsSchema = new mongoose.Schema({
     }
 });
 
+const historySchema = new mongoose.Schema({
+    date: { type: Date, required: true, index: true },
+    outfits: [{
+        outfitId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+        isAIOutfit: { type: Boolean, required: true, default: false }
+    }]
+});
+const favoriteOutfitsSchema = new mongoose.Schema({
+    season: { type: String, required: true },
+    outfitIds: [{ type: mongoose.Schema.Types.ObjectId, required: true }]
+});
+
+
 // Main closet schema
 const closetSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
-    categories: categoriesSchema,
     userId: { type: String },
+    categories: categoriesSchema,
     outfits: outfitsSchema,
     clothesNumber : {
         type: Number,
@@ -237,7 +267,9 @@ const closetSchema = new mongoose.Schema({
     outfitNumber : {
         type: Number,
         default : 0
-    }
+    },
+    history: [historySchema],
+    favoriteOutfits : [favoriteOutfitsSchema]
 });
 
 const Closet = mongoose.model("userclothes", closetSchema);
