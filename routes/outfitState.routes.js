@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { addOutfit, editOutfit, getOutfit ,getAllOutfits , getAllSpecificSeasonOutfits ,getOutfitsNumber ,deleteOutfit ,getOutfitIdsContainingItems ,addLogOutfitUsage , getOutfitNumberMadeByAI ,editHistory ,addToFavorite ,deleteFromFavorite ,getFavoriteOutfit ,deleteHistory} from "../controller/outfit.js";
+import { addOutfit, editOutfit, getOutfit ,getAllOutfits , getAllSpecificSeasonOutfits ,getOutfitsNumber ,deleteOutfit ,getOutfitIdsContainingItems ,addLogOutfitUsage , getOutfitNumberMadeByAI ,editHistory ,addToFavorite ,deleteFromFavorite ,getFavoriteOutfit ,deleteHistory,getHistory} from "../controller/outfit.js";
 
 
 const router = Router();
 router.get("/:userId/outfitsNumber", getOutfitsNumber);
 router.get("/getOutfitNumberMadeByAI/:userId", getOutfitNumberMadeByAI);
 router.get("/getFavoriteOutfit/:userId/:season", getFavoriteOutfit);
+router.get("/history/:userId", getHistory);
 router.post("/logOutfitUsage/:userId", addLogOutfitUsage);
 router.post("/addToFavorite/:userId", addToFavorite);
 router.post("/:userId/getOutfitIdsContainingItems", getOutfitIdsContainingItems );
