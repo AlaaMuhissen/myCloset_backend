@@ -249,10 +249,7 @@ const historySchema = new mongoose.Schema({
         isAIOutfit: { type: Boolean, required: true, default: false }
     }]
 });
-const favoriteOutfitsSchema = new mongoose.Schema({
-    season: { type: String, required: true },
-    outfitIds: [{ type: mongoose.Schema.Types.ObjectId, required: true }]
-});
+
 
 
 // Main closet schema
@@ -270,7 +267,7 @@ const closetSchema = new mongoose.Schema({
         default : 0
     },
     history: [historySchema],
-    favoriteOutfits : [favoriteOutfitsSchema]
+  
 });
 
 const Closet = mongoose.model("userclothes", closetSchema);

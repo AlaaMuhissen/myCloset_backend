@@ -499,18 +499,6 @@ export const deleteFromFavorite = async (req, res) => {
         const closet = await Closet.findOne({ userId });
         if (!closet) return res.status(404).json({ message: "User closet not found" });
 
-        // Find the favorite outfits for the given season
-        let favoriteOutfit = closet.favoriteOutfits.find(fav => fav.season === season);
-
-        if (favoriteOutfit) {
-            // If the season exists, remove the outfit ID from the outfitIds array
-            favoriteOutfit.outfitIds = favoriteOutfit.outfitIds.filter(id => id.toString() !== outfitId);
-
-            if (favoriteOutfit.outfitIds.length === 0) {
-                // If no outfit IDs left, remove the entire favorite outfit entry for the season
-                closet.favoriteOutfits = closet.favoriteOutfits.filter(fav => fav.season !== season);
-            }
-
             // Update the inFavorite field for the outfit
             const seasons = ['Spring', 'Summer','Autumn', 'Winter'];
             for (const season of seasons) {
@@ -521,10 +509,8 @@ export const deleteFromFavorite = async (req, res) => {
             }
 
             await closet.save();
-            res.status(200).json({ message: "Outfit removed from favorites", favoriteOutfits: closet.favoriteOutfits });
-        } else {
-            return res.status(404).json({ message: "Favorite outfit for the given season not found" });
-        }
+            res.status(200).json({ message: "Outfit removed from favorites", favoriteOutfits: closet.outfits[season] });
+       
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -543,23 +529,7 @@ export const addToFavorite = async (req, res) => {
         const closet = await Closet.findOne({ userId });
         if (!closet) return res.status(404).json({ message: "User closet not found" });
 
-        // Find the favorite outfits for the given season
-        let favoriteOutfit = closet.favoriteOutfits.find(fav => fav.season === season);
-
-        if (favoriteOutfit) {
-            // If the season exists, add the outfit ID to the outfitIds array if not already present
-            if (!favoriteOutfit.outfitIds.includes(outfitId)) {
-                favoriteOutfit.outfitIds.push(outfitId);
-            } else {
-                return res.status(400).json({ message: "Outfit is already in favorites" });
-            }
-        } else {
-            // If the season does not exist, create a new entry
-            closet.favoriteOutfits.push({
-                season,
-                outfitIds: [outfitId]
-            });
-        }
+     
             // Update the inFavorite field for the outfit
             const seasons = ['Spring', 'Summer','Autumn', 'Winter'];
             for (const season of seasons) {
@@ -569,7 +539,7 @@ export const addToFavorite = async (req, res) => {
                 }
             }
         await closet.save();
-        res.status(200).json({ message: "Outfit added to favorites", favoriteOutfits: closet.favoriteOutfits });
+        res.status(200).json({ message: "Outfit added to favorites", favoriteOutfits: closet.outfits });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -577,7 +547,6 @@ export const addToFavorite = async (req, res) => {
 
 
 export const getFavoriteOutfit = async (req, res) => {
-
     const { userId, season } = req.params;
 
     if (!season) {
@@ -585,39 +554,35 @@ export const getFavoriteOutfit = async (req, res) => {
     }
 
     try {
+        // Find the user's closet
         const closet = await Closet.findOne({ userId });
         if (!closet) return res.status(404).json({ message: "User closet not found" });
 
-        // Find the favorite outfits for the given season
-        const favoriteOutfit = closet.favoriteOutfits.find(fav => fav.season === season);
+        // Check if there are any outfits for the given season
+        const seasonOutfits = closet.outfits[season];
+        if (!seasonOutfits) return res.status(404).json({ message: `No outfits found for ${season}` });
 
-        if (favoriteOutfit) {
-            const favoriteOutfitsWithDetails = [];
-            const outfitIds = favoriteOutfit.outfitIds;
-
-            const seasons = ['Spring', 'Summer','Autumn', 'Winter'];
-            for (const season of seasons) {
-                if (closet.outfits[season]) {
-                    for (const [outfitId, outfitDetails] of closet.outfits[season]) {
-                        if (outfitIds.includes(outfitId.toString())) {
-                            favoriteOutfitsWithDetails.push({
-                                outfitId: outfitId.toString(),
-                                imgUrl: outfitDetails.imgUrl,
-                                season
-                            });
-                        }
-                    }
-                }
+        // Find favorite outfits for the given season
+        const favoriteOutfits = [];
+        for (const [outfitId, outfitDetails] of seasonOutfits) {
+            if (outfitDetails.inFavorite) {
+                favoriteOutfits.push({
+                    outfitId: outfitId.toString(),
+                    imgUrl: outfitDetails.imgUrl,
+                    season
+                });
             }
+        }
 
-            res.status(200).json({ favoriteOutfits: favoriteOutfitsWithDetails });
+        if (favoriteOutfits.length > 0) {
+            res.status(200).json({ favoriteOutfits });
         } else {
             res.status(404).json({ message: "No favorite outfits found for the given season" });
         }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}
+};
 
 export const deleteHistory = async (req, res) => {
     try {
