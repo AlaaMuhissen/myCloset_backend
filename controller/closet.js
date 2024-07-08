@@ -12,40 +12,6 @@ export const getUserClothes = async (req, res) => {
     }
 }
 
-export const deleteHistory = async (req, res) => {
-    try {
-        const { userId } = req.params;
-
-        const closet = await Closet.findOne({ userId });
-        if (!closet) return res.status(404).json({ message: "User closet not found" });
-
-        // Clear the history array
-        closet.history = [];
-
-        // Clear the usageLog for each item in the categories
-        const categories = closet.categories;
-        for (let category in categories) {
-            if (category === '_id') continue; // Skip the _id field
-
-            let subCategories = categories[category];
-            if (typeof subCategories !== 'object' || subCategories === null) continue;
-
-            for (let subCategory in subCategories) {
-                let itemsMap = subCategories[subCategory];
-                if (itemsMap instanceof Map) {
-                    for (let [itemId, item] of itemsMap.entries()) {
-                        item.usageLog = [];
-                    }
-                }
-            }
-        }
-
-        await closet.save();
-        res.status(200).json({ message: "History and usage logs deleted successfully" });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-}
 
 export const getClothesNumber = async (req, res) => {
     try {
@@ -464,7 +430,7 @@ export const filterAndTransformCloset = async (req, res) => {
 
         const items = closet.categories;
         const filteredItems = filterItems(items, filters, null); // Pass null to check all subcategories
-        // console.log(filteredItems);
+       
         const transformedData = transformFilteredItems(filteredItems);
 
         res.status(200).json(transformedData);

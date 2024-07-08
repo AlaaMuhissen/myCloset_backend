@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addOutfit, editOutfit, getOutfit ,getAllOutfits , getAllSpecificSeasonOutfits ,getOutfitsNumber ,deleteOutfit ,getOutfitIdsContainingItems ,addLogOutfitUsage , getOutfitNumberMadeByAI ,editHistory ,addToFavorite ,deleteFromFavorite ,getFavoriteOutfit} from "../controller/outfit.js";
+import { addOutfit, editOutfit, getOutfit ,getAllOutfits , getAllSpecificSeasonOutfits ,getOutfitsNumber ,deleteOutfit ,getOutfitIdsContainingItems ,addLogOutfitUsage , getOutfitNumberMadeByAI ,editHistory ,addToFavorite ,deleteFromFavorite ,getFavoriteOutfit ,deleteHistory} from "../controller/outfit.js";
 
 
 const router = Router();
@@ -16,5 +16,6 @@ router.put("/:userId/:season/:outfitNumber" , editOutfit);
 router.put("/:userId/:outfitId" , editHistory);
 router.post("/:userId/:season/" , addOutfit)
 router.delete("/deleteFromFavorite/:userId", deleteFromFavorite);
+router.delete("/deleteHistory/:userId", deleteHistory);
 router.delete("/:userId/:season", deleteOutfit);
 export default router;

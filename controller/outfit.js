@@ -69,15 +69,14 @@ export const addLogOutfitUsage = async (req, res) => {
                 return res.status(400).send('This outfit usage already logged for today');
             }
             // Add the new outfit to the existing entry for today
-            historyEntry.outfits.push({ outfitId, isAIOutfit });
+            historyEntry.outfits.push({ outfitId, outfitImg: outfit.imgUrl, isAIOutfit });
         } else {
             // Create a new entry for today
-            userCloset.history.push({ date: today, outfits: [{ outfitId, isAIOutfit }] });
+            userCloset.history.push({ date: today, outfits: [{ outfitId, outfitImg: outfit.imgUrl, isAIOutfit }] });
         }
 
         // Log usage for each item in the outfit
         const itemsId = outfit.itemsId;
-        console.log('itemsId => ', itemsId);
         const newUsageLog = { date: now };
 
         const categories = userCloset.categories;
@@ -93,7 +92,7 @@ export const addLogOutfitUsage = async (req, res) => {
                     for (let [itemId, item] of itemsMap.entries()) {
                         if (itemsId.includes(itemId)) {
                             item.usageLog.push(newUsageLog);
-                            console.log("item => ", item);
+                        
                         }
                     }
                 }
@@ -164,7 +163,6 @@ export const editHistory = async (req, res) => {
             return res.status(400).json({ message: "Invalid date" });
         }
         const normalizedDate = parsedDate.toDateString();
-        console.log(normalizedDate)
         const closet = await Closet.findOne({ userId });
         if (!closet) return res.status(404).json({ message: "User closet not found" });
 
@@ -596,5 +594,40 @@ export const getFavoriteOutfit = async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+}
+
+export const deleteHistory = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const closet = await Closet.findOne({ userId });
+        if (!closet) return res.status(404).json({ message: "User closet not found" });
+
+        // Clear the history array
+        closet.history = [];
+
+        // Clear the usageLog for each item in the categories
+        const categories = closet.categories;
+        for (let category in categories) {
+            if (category === '_id') continue; // Skip the _id field
+
+            let subCategories = categories[category];
+            if (typeof subCategories !== 'object' || subCategories === null) continue;
+
+            for (let subCategory in subCategories) {
+                let itemsMap = subCategories[subCategory];
+                if (itemsMap instanceof Map) {
+                    for (let [itemId, item] of itemsMap.entries()) {
+                        item.usageLog = [];
+                    }
+                }
+            }
+        }
+
+        await closet.save();
+        res.status(200).json({ message: "History and usage logs deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 }
