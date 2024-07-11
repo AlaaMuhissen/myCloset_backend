@@ -545,7 +545,7 @@ export const getUserStatistics = async (req, res) => {
             }
         });
 
-        // Determine the most worn and least worn items, and calculate unused items
+        // Determine the most worn, least worn, and unused items
         for (const category in wearFrequencyData) {
             for (const subCategory in wearFrequencyData[category]) {
                 let mostWornItemId = null;
@@ -559,7 +559,7 @@ export const getUserStatistics = async (req, res) => {
                         highestCount = itemData.count;
                         mostWornItemId = itemId;
                     }
-                    if (itemData.count < lowestCount) {
+                    if (itemData.count < lowestCount && itemData.count > 0) {
                         lowestCount = itemData.count;
                         leastWornItemId = itemId;
                     }
@@ -573,7 +573,7 @@ export const getUserStatistics = async (req, res) => {
                     };
                 }
 
-                if (leastWornItemId) {
+                if (leastWornItemId && leastWornItemId !== mostWornItemId) {
                     statistics.leastWornItems[`${category}_${subCategory}`] = {
                         itemId: leastWornItemId,
                         item: wearFrequencyData[category][subCategory][leastWornItemId].item,
@@ -584,7 +584,7 @@ export const getUserStatistics = async (req, res) => {
                 // Collect unused items
                 for (const itemId in wearFrequencyData[category][subCategory]) {
                     const itemData = wearFrequencyData[category][subCategory][itemId];
-                    if (itemData.count === 0) {
+                    if (itemData.count === 0 && itemId !== mostWornItemId && itemId !== leastWornItemId) {
                         statistics.unusedItems[`${category}_${subCategory}`] = statistics.unusedItems[`${category}_${subCategory}`] || [];
                         statistics.unusedItems[`${category}_${subCategory}`].push({
                             itemId: itemId,
@@ -629,6 +629,7 @@ export const getUserStatistics = async (req, res) => {
         res.status(500).send('Error retrieving user statistics');
     }
 };
+
 
 
 

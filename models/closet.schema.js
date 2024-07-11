@@ -246,7 +246,8 @@ const historySchema = new mongoose.Schema({
     outfits: [{
         outfitId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
         outfitImg: { type: String, required: true },
-        isAIOutfit: { type: Boolean, required: true, default: false }
+        isAIOutfit: { type: Boolean, required: true, default: false },
+        season :  { type: String, required: true },
     }]
 });
 

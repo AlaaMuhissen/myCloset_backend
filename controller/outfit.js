@@ -53,7 +53,7 @@ export const getHistory = async (req, res) => {
 
 export const addLogOutfitUsage = async (req, res) => {
     const { userId } = req.params;
-    const { outfitId, isAIOutfit } = req.body;
+    const { outfitId, isAIOutfit ,season } = req.body;
 
     try {
         const userCloset = await Closet.findOne({ userId });
@@ -91,10 +91,10 @@ export const addLogOutfitUsage = async (req, res) => {
                 return res.status(400).send('This outfit usage already logged for today');
             }
             // Add the new outfit to the existing entry for today
-            historyEntry.outfits.push({ outfitId, outfitImg: outfit.imgUrl, isAIOutfit });
+            historyEntry.outfits.push({ outfitId, outfitImg: outfit.imgUrl, isAIOutfit ,season});
         } else {
             // Create a new entry for today
-            userCloset.history.push({ date: today, outfits: [{ outfitId, outfitImg: outfit.imgUrl, isAIOutfit }] });
+            userCloset.history.push({ date: today, outfits: [{ outfitId, outfitImg: outfit.imgUrl, isAIOutfit, season }] });
         }
 
         // Log usage for each item in the outfit
