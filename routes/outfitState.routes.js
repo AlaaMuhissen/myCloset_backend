@@ -5,6 +5,7 @@ import { addOutfit, editOutfit, getOutfit ,getAllOutfits , getAllSpecificSeasonO
 const router = Router();
 router.get("/:userId/outfitsNumber", getOutfitsNumber);
 router.get("/getOutfitNumberMadeByAI/:userId", getOutfitNumberMadeByAI);
+router.delete("/deleteFromFavorite/:userId", deleteFromFavorite);
 router.get("/getFavoriteOutfit/:userId/:season", getFavoriteOutfit);
 router.get("/history/:userId", getHistory);
 router.post("/logOutfitUsage/:userId", addLogOutfitUsage);
@@ -16,7 +17,7 @@ router.get("/:userId/:season/:outfitNumber", getOutfit);
 router.put("/:userId/:season/:outfitNumber" , editOutfit);
 router.put("/:userId/:outfitId" , editHistory);
 router.post("/:userId/:season/" , addOutfit)
-router.delete("/deleteFromFavorite/:userId", deleteFromFavorite);
+
 router.delete("/deleteHistory/:userId", deleteHistory);
 router.delete("/:userId/:season", deleteOutfit);
 export default router;

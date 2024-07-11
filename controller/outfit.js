@@ -66,9 +66,9 @@ export const addLogOutfitUsage = async (req, res) => {
 
         // Find the outfit
         let outfit = null;
-        for (const season of seasons) {
-            if (userCloset.outfits[season] && userCloset.outfits[season].has(outfitId)) {
-                outfit = userCloset.outfits[season].get(outfitId);
+        for (const s of seasons) {
+            if (userCloset.outfits[s] && userCloset.outfits[s].has(outfitId)) {
+                outfit = userCloset.outfits[s].get(outfitId);
                 break;
             }
         }
@@ -174,7 +174,7 @@ export const getOutfitsNumber = async (req, res) => {
 export const editHistory = async (req, res) => {
     try {
         const { userId ,outfitId } = req.params;
-        const {  date } = req.body;
+        const {  date ,season} = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(outfitId)) {
             return res.status(400).json({ message: "Invalid outfit ID" });
@@ -198,8 +198,16 @@ export const editHistory = async (req, res) => {
             return res.status(404).json({ message: "Outfit not found in history for the specified date" });
         }
 
-        const historyEntry = closet.history[historyEntryIndex];
-        historyEntry.outfits = historyEntry.outfits.filter(outfit => outfit.outfitId.toString() !== outfitId);
+
+           // Update the season in the history entry
+           const historyEntry = closet.history[historyEntryIndex];
+           historyEntry.outfits = historyEntry.outfits.map(outfit => {
+               if (outfit.outfitId.toString() === outfitId) {
+                   return { ...outfit, season: season }; // Add or update the season
+               }
+               return outfit;
+           });
+   
 
         if (historyEntry.outfits.length === 0) {
             closet.history.splice(historyEntryIndex, 1); // Remove the history entry if no outfits left

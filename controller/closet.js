@@ -440,120 +440,198 @@ export const filterAndTransformCloset = async (req, res) => {
     }
 };
 
+// Helper functions to get outfit and item details
+const getOutfitDetails = (userCloset, outfitId) => {
+    const stringId = outfitId.toString();
+    for (const season in userCloset.outfits) {
+        const itemMap = userCloset.outfits[season];
+        if(itemMap  instanceof Map){
+            if(userCloset.outfits[season].has(stringId)){
+                return userCloset.outfits[season].get(stringId);
+            }
+        }
+        
+    }
+    return null;
+};
+
+const getItemDetails = (userCloset, itemId) => {
+    const stringId = itemId.toString();
+    for (const category in userCloset.categories) {
+        if (category === '_id') continue;
+        const subCategories = userCloset.categories[category];
+        for (const subCategory in subCategories) {
+            const itemsMap = subCategories[subCategory];
+            if(itemsMap  instanceof Map){
+                if (itemsMap.has(stringId)) {
+                    return itemsMap.get(stringId);
+                }
+            }
+        }
+    }
+    return null;
+};
 
 export const getUserStatistics = async (req, res) => {
-        const { userId, period } = req.params;
-        try {
-            const userCloset = await Closet.findOne({ userId });
-            if (!userCloset) {
-                return res.status(404).send('User closet not found');
-            }
-    
-            const statistics = {
-                totalItems: {},
-                mostWornItems: {},
-                leastWornItems: {},
-                seasonalWear: { Summer: 0, Winter: 0, Spring: 0, Autumn: 0 },
-                colorDistribution: {},
-                fabricDistribution: {},
-                tagUsage: {},
-                newAdditions: 0,
-                wearFrequency: {},
-                outfitCombinations: 0,
-                occasionDistribution: {},
-                sizeFitDistribution: {}
-            };
-    
-            // Calculate the start date for the period
-            const periodStartDate = new Date();
-            if (period === 'week') {
-                periodStartDate.setDate(periodStartDate.getDate() - 7);
-            } else if (period === 'month') {
-                periodStartDate.setMonth(periodStartDate.getMonth() - 1);
-            } else {
-                return res.status(400).send('Invalid period');
-            }
-    
-            // Calculate total items
-            for (const category in userCloset.categories) {
-                statistics.totalItems[category] = {};
-                for (const subCategory in userCloset.categories[category]) {
-                    statistics.totalItems[category][subCategory] = userCloset.categories[category][subCategory].size;
-                }
-            }
-    
-            // Calculate most and least worn items
-            for (const category in userCloset.categories) {
-                statistics.mostWornItems[category] = {};
-                statistics.leastWornItems[category] = {};
-    
-                for (const subCategory in userCloset.categories[category]) {
-                    const items = userCloset.categories[category][subCategory];
-                    const usageCounts = [];
-    
-                    items.forEach((item, itemId) => {
-                        const usageCount = item.usageLog.length;
-                        const recentUsageCount = item.usageLog.filter(log => log.date >= periodStartDate).length;
-                        if (recentUsageCount > 0) {
-                            usageCounts.push({ itemId, usageCount, recentUsageCount });
-                        }
-                    });
-    
-                    usageCounts.sort((a, b) => b.recentUsageCount - a.recentUsageCount);
-                    statistics.mostWornItems[category][subCategory] = usageCounts.slice(0, 2); // Top 2
-                    statistics.leastWornItems[category][subCategory] = usageCounts.slice(-2); // Bottom 2
-                }
-            }
-    
-            // Calculate seasonal wear, color, fabric, tag usage, new additions
-            for (const category in userCloset.categories) {
-                for (const subCategory in userCloset.categories[category]) {
-                    const items = userCloset.categories[category][subCategory];
-    
-                    items.forEach((item) => {
-                        item.seasons.forEach(season => {
-                            statistics.seasonalWear[season]++;
-                        });
-                        item.colors.forEach(color => {
-                            statistics.colorDistribution[color] = (statistics.colorDistribution[color] || 0) + 1;
-                        });
-                        statistics.fabricDistribution[item.fabric] = (statistics.fabricDistribution[item.fabric] || 0) + 1;
-                        item.tags.forEach(tag => {
-                            statistics.tagUsage[tag] = (statistics.tagUsage[tag] || 0) + 1;
-                        });
-                        if (item.createdAt >= periodStartDate) {
-                            statistics.newAdditions++;
-                        }
-                    });
-                }
-            }
-    
-            // Calculate wear frequency
-            for (const category in userCloset.categories) {
-                statistics.wearFrequency[category] = {};
-    
-                for (const subCategory in userCloset.categories[category]) {
-                    const items = userCloset.categories[category][subCategory];
-    
-                    items.forEach((item, itemId) => {
-                        statistics.wearFrequency[category][subCategory] = statistics.wearFrequency[category][subCategory] || [];
-                        statistics.wearFrequency[category][subCategory].push({ itemId, frequency: item.usageLog.length });
-                    });
-                }
-            }
-    
-            // Calculate outfit combinations
-            statistics.outfitCombinations = userCloset.outfits.length;
-    
-            // Placeholder for occasion and size fit distribution
-            // You need to extend your schema and tracking logic to capture this data
-    
-            res.status(200).json(statistics);
-        } catch (error) {
-            res.status(500).send('Error retrieving user statistics');
+    const { userId, period } = req.params;
+
+    try {
+        const userCloset = await Closet.findOne({ userId });
+        if (!userCloset) {
+            return res.status(404).send('User closet not found');
         }
-  
-}
+
+        // Calculate the date range for the given period (in weeks)
+        const now = new Date();
+        const periodStartDate = new Date(now);
+        periodStartDate.setDate(periodStartDate.getDate() - period * 7);
+
+        const statistics = {
+            totalItems: {},
+            mostWornItems: {},
+            leastWornItems: {},
+            seasonalWear: { Summer: 0, Winter: 0, Spring: 0, Autumn: 0 },
+            colorDistribution: {},
+            fabricDistribution: {},
+            tagUsage: {},
+            newAdditions: 0,
+            unusedItems: {}
+        };
+
+        const wearFrequencyData = {};
+
+        // Calculate total items and initialize wear frequency data
+        for (const category in userCloset.categories) {
+            if (category === '_id') continue;
+            const subCategories = userCloset.categories[category];
+            for (const subCategory in subCategories) {
+                const itemsMap = subCategories[subCategory];
+                if (itemsMap instanceof Map) {
+                    statistics.totalItems[`${category}_${subCategory}`] = itemsMap.size;
+
+                    // Initialize wear frequency data
+                    wearFrequencyData[category] = wearFrequencyData[category] || {};
+                    wearFrequencyData[category][subCategory] = {};
+
+                    for (let [itemId, item] of itemsMap.entries()) {
+                        wearFrequencyData[category][subCategory][itemId] = {
+                            count: 0,
+                            item: item
+                        };
+                    }
+                }
+            }
+        }
+
+        // Update wear frequency from history
+        userCloset.history.forEach(entry => {
+            const entryDate = new Date(entry.date);
+            if (entryDate >= periodStartDate && entryDate <= now) {
+                entry.outfits.forEach(outfit => {
+                    const outfitDetails = getOutfitDetails(userCloset, outfit.outfitId);
+                    if (outfitDetails) {
+                        outfitDetails.itemsId.forEach(itemId => {
+                            for (const category in wearFrequencyData) {
+                                const subCategories = wearFrequencyData[category];
+                                for (const subCategory in subCategories) {
+                                    if (wearFrequencyData[category][subCategory][itemId]) {
+                                        wearFrequencyData[category][subCategory][itemId].count++;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        // Determine the most worn and least worn items, and calculate unused items
+        for (const category in wearFrequencyData) {
+            for (const subCategory in wearFrequencyData[category]) {
+                let mostWornItemId = null;
+                let leastWornItemId = null;
+                let highestCount = 0;
+                let lowestCount = Infinity;
+
+                for (const itemId in wearFrequencyData[category][subCategory]) {
+                    const itemData = wearFrequencyData[category][subCategory][itemId];
+                    if (itemData.count > highestCount) {
+                        highestCount = itemData.count;
+                        mostWornItemId = itemId;
+                    }
+                    if (itemData.count < lowestCount) {
+                        lowestCount = itemData.count;
+                        leastWornItemId = itemId;
+                    }
+                }
+
+                if (mostWornItemId) {
+                    statistics.mostWornItems[`${category}_${subCategory}`] = {
+                        itemId: mostWornItemId,
+                        item: wearFrequencyData[category][subCategory][mostWornItemId].item,
+                        count: highestCount
+                    };
+                }
+
+                if (leastWornItemId) {
+                    statistics.leastWornItems[`${category}_${subCategory}`] = {
+                        itemId: leastWornItemId,
+                        item: wearFrequencyData[category][subCategory][leastWornItemId].item,
+                        count: lowestCount
+                    };
+                }
+
+                // Collect unused items
+                for (const itemId in wearFrequencyData[category][subCategory]) {
+                    const itemData = wearFrequencyData[category][subCategory][itemId];
+                    if (itemData.count === 0) {
+                        statistics.unusedItems[`${category}_${subCategory}`] = statistics.unusedItems[`${category}_${subCategory}`] || [];
+                        statistics.unusedItems[`${category}_${subCategory}`].push({
+                            itemId: itemId,
+                            item: itemData.item
+                        });
+                    }
+                }
+            }
+        }
+
+        // Calculate other statistics
+        userCloset.history.forEach(entry => {
+            const entryDate = new Date(entry.date);
+            if (entryDate >= periodStartDate && entryDate <= now) {
+                entry.outfits.forEach(outfit => {
+                    if (outfit.season) {
+                        statistics.seasonalWear[outfit.season]++;
+                    }
+                    statistics.newAdditions++;
+
+                    const outfitDetails = getOutfitDetails(userCloset, outfit.outfitId);
+                    if (outfitDetails) {
+                        outfitDetails.itemsId.forEach(itemId => {
+                            const item = getItemDetails(userCloset, itemId);
+                            if (item) {
+                                item.colors.forEach(color => {
+                                    statistics.colorDistribution[color] = (statistics.colorDistribution[color] || 0) + 1;
+                                });
+                                statistics.fabricDistribution[item.fabric] = (statistics.fabricDistribution[item.fabric] || 0) + 1;
+                                item.tags.forEach(tag => {
+                                    statistics.tagUsage[tag] = (statistics.tagUsage[tag] || 0) + 1;
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        res.status(200).json(statistics);
+    } catch (error) {
+        res.status(500).send('Error retrieving user statistics');
+    }
+};
+
+
+
 
 
 
@@ -640,7 +718,6 @@ export const addNewUser = async (req, res) => {
                 Winter: new Map()
             },
             history: [],
-            favoriteOutfits: [],
             clothesNumber: 0,
             outfitNumber: 0
         });
