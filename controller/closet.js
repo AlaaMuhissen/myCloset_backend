@@ -487,7 +487,17 @@ export const getUserStatistics = async (req, res) => {
         periodStartDate.setDate(periodStartDate.getDate() - period * 7);
 
         const statistics = {
-            totalItems: {},
+            totalItems: {'Tops' : 0 ,
+                'Bottoms' : 0,
+                'Outwear' : 0,
+                'Shoes' : 0,
+                'Bags': 0,
+                'Head_wear' : 0,
+                'Jewelry' : 0,
+                'Other_items':0
+
+
+            },
             mostWornItems: {},
             leastWornItems: {},
             seasonalWear: { Summer: 0, Winter: 0, Spring: 0, Autumn: 0 },
@@ -507,7 +517,7 @@ export const getUserStatistics = async (req, res) => {
             for (const subCategory in subCategories) {
                 const itemsMap = subCategories[subCategory];
                 if (itemsMap instanceof Map) {
-                    statistics.totalItems[`${category}_${subCategory}`] = itemsMap.size;
+                    statistics.totalItems[`${category}`] += itemsMap.size;
 
                     // Initialize wear frequency data
                     wearFrequencyData[category] = wearFrequencyData[category] || {};
