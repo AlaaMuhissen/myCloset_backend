@@ -489,6 +489,7 @@ export const getUserStatistics = async (req, res) => {
         const statistics = {
             totalItems: {'Tops' : 0 ,
                 'Bottoms' : 0,
+                'One_Piece': 0 ,
                 'Outwear' : 0,
                 'Shoes' : 0,
                 'Bags': 0,
