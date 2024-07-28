@@ -727,7 +727,9 @@ export const addNewUser = async (req, res) => {
             },
             outfits: {
                 Summer: new Map(),
-                Winter: new Map()
+                Winter: new Map(),
+                Autumn: new Map(),
+                Spring: new Map()
             },
             history: [],
             clothesNumber: 0,

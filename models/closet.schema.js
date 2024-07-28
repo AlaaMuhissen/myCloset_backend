@@ -238,6 +238,14 @@ const outfitsSchema = new mongoose.Schema({
     Winter: {
         type: Map,
         of: outfitItemsSchema
+    },
+    Autumn: {
+        type: Map,
+        of: outfitItemsSchema
+    },
+    Spring: {
+        type: Map,
+        of: outfitItemsSchema
     }
 });
 
