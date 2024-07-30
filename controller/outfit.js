@@ -8,13 +8,13 @@ export const getOutfit = async (req, res) => {
         const closet = await Closet.findOne({ userId });
 
         if (!closet) {
-            // return res.status(404).json({ message: "Closet not found" });
+            return res.status(404).json({ message: "Closet not found" });
         }
        
         const outfits = closet.outfits[season];
        
         if (!outfits) {
-            // return res.status(404).json({ message: "Outfits not found FOR this Season" });
+            return res.status(404).json({ message: "Outfits not found FOR this Season" });
         }
 
         const outfit = outfits.get(outfitNumber);
@@ -36,13 +36,13 @@ export const getHistory = async (req, res) => {
         const closet = await Closet.findOne({ userId });
 
         if (!closet) {
-            // return res.status(404).json({ message: "Closet not found" });
+            return res.status(404).json({ message: "Closet not found" });
         }
        
         const history = closet.history;
        
         if (!history) {
-            // return res.status(404).json({ message: "History not found FOR this User" });
+            return res.status(404).json({ message: "History not found FOR this User" });
         }
 
         res.status(200).json(history);
@@ -58,7 +58,7 @@ export const addLogOutfitUsage = async (req, res) => {
     try {
         const userCloset = await Closet.findOne({ userId });
         if (!userCloset) {
-            // return res.status(404).send('User closet not found');
+            return res.status(404).send('User closet not found');
         }
 
         // Define seasons
@@ -73,7 +73,7 @@ export const addLogOutfitUsage = async (req, res) => {
             }
         }
         if (!outfit) {
-            // return res.status(404).send('Outfit not found');
+            return res.status(404).send('Outfit not found');
         }
 
         const now = new Date();
@@ -141,7 +141,7 @@ export const getOutfitNumberMadeByAI = async (req, res) => {
         }
 
         const closet = await Closet.findOne({ userId });
-        // if (!closet) return res.status(404).json({ message: "User closet not found" });
+        if (!closet) return res.status(404).json({ message: "User closet not found" });
 
         const history = closet.history;
 
@@ -164,7 +164,7 @@ export const getOutfitsNumber = async (req, res) => {
     try {
         const { userId } = req.params;
         const closet = await Closet.findOne({ userId });
-        // if (!closet) return res.status(404).json({ message: "Item not found" });
+        if (!closet) return res.status(404).json({ message: "Item not found" });
         res.status(200).json({outfitNumber : closet.outfitNumber});
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -186,7 +186,7 @@ export const editHistory = async (req, res) => {
         }
         const normalizedDate = parsedDate.toDateString();
         const closet = await Closet.findOne({ userId });
-        // if (!closet) return res.status(404).json({ message: "User closet not found" });
+        if (!closet) return res.status(404).json({ message: "User closet not found" });
 
         // Find and remove the history entry
         const historyEntryIndex = closet.history.findIndex(entry => {
@@ -195,7 +195,7 @@ export const editHistory = async (req, res) => {
         });
 
         if (historyEntryIndex === -1) {
-            // return res.status(404).json({ message: "Outfit not found in history for the specified date" });
+            return res.status(404).json({ message: "Outfit not found in history for the specified date" });
         }
 
 
@@ -258,13 +258,13 @@ export const getAllSpecificSeasonOutfits = async (req, res) => {
         const closet = await Closet.findOne({ userId });
 
         if (!closet) {
-            // return res.status(404).json({ message: "Closet not found" });
+            return res.status(404).json({ message: "Closet not found" });
         }
 
         const outfits = closet.outfits[season];
       
         if (!outfits) {
-            // return res.status(404).json({ message: "There are no outfits for this season" });
+            return res.status(404).json({ message: "There are no outfits for this season" });
         }
 
         // Function to handle Map conversion during JSON.stringify
@@ -292,13 +292,13 @@ export const getAllOutfits = async (req, res) => {
         const closet = await Closet.findOne({ userId });
 
         if (!closet) {
-            // return res.status(404).json({ message: "Closet not found" });
+            return res.status(404).json({ message: "Closet not found" });
         }
 
         const outfits = closet.outfits;
        
         if (!outfits) {
-            // return res.status(404).json({ message: "There are no outfits" });
+            return res.status(404).json({ message: "There are no outfits" });
         }
 
         res.status(200).json(outfits);
@@ -359,7 +359,7 @@ export const editOutfit = async (req, res) => {
         );
 
         if (!updatedCloset) {
-            // return res.status(404).json({ message: 'Closet not found' });
+            return res.status(404).json({ message: 'Closet not found' });
         }
 
         const updatedOutfit = updatedCloset.outfits[season].get(outfitNumber);
@@ -400,7 +400,7 @@ export const addOutfit = async (req, res) => {
         );
 
         if (!updatedCloset) {
-            // return res.status(404).json({ message: 'Closet not found' });
+            return res.status(404).json({ message: 'Closet not found' });
         }
 
         res.status(201).json({ message: 'Outfit added successfully', closet: updatedCloset });
@@ -415,12 +415,12 @@ export const deleteOutfit = async (req, res) => {
         const { itemsId } = req.body; //outfit ids
 
         const closet = await Closet.findOne({ userId });
-        // if (!closet) return res.status(404).json({ message: "Item not found" });
+        if (!closet) return res.status(404).json({ message: "Item not found" });
 
         const outfits = closet.outfits[season];
 
         if (!outfits) {
-            // return res.status(404).json({ message: "There are no outfits" });
+            return res.status(404).json({ message: "There are no outfits" });
         }
         
         // Iterate over itemsId and delete the corresponding entries from the outfits map
@@ -441,7 +441,7 @@ export const deleteOutfit = async (req, res) => {
         );
     
         if (!updatedCloset) {
-            // return res.status(404).json({ message: "Closet not found" });
+            return res.status(404).json({ message: "Closet not found" });
         }
 
         res.status(200).json({ message: 'Outfits deleted successfully', closet: updatedCloset });
@@ -505,7 +505,7 @@ export const deleteFromFavorite = async (req, res) => {
 
     try {
         const closet = await Closet.findOne({ userId });
-        // if (!closet) return res.status(404).json({ message: "User closet not found" });
+        if (!closet) return res.status(404).json({ message: "User closet not found" });
 
             // Update the inFavorite field for the outfit
             const seasons = ['Spring', 'Summer','Autumn', 'Winter'];
@@ -564,11 +564,11 @@ export const getFavoriteOutfit = async (req, res) => {
     try {
         // Find the user's closet
         const closet = await Closet.findOne({ userId });
-        // if (!closet) return res.status(404).json({ message: "User closet not found" });
+        if (!closet) return res.status(404).json({ message: "User closet not found" });
 
         // Check if there are any outfits for the given season
         const seasonOutfits = closet.outfits[season];
-        // if (!seasonOutfits) return res.status(404).json({ message: `No outfits found for ${season}` });
+        if (!seasonOutfits) return res.status(404).json({ message: `No outfits found for ${season}` });
 
         // Find favorite outfits for the given season
         const favoriteOutfits = [];
@@ -585,7 +585,7 @@ export const getFavoriteOutfit = async (req, res) => {
         if (favoriteOutfits.length > 0) {
             res.status(200).json({ favoriteOutfits });
         } else {
-            // res.status(404).json({ message: "No favorite outfits found for the given season" });
+            res.status(404).json({ message: "No favorite outfits found for the given season" });
         }
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -597,7 +597,7 @@ export const deleteHistory = async (req, res) => {
         const { userId } = req.params;
 
         const closet = await Closet.findOne({ userId });
-        // if (!closet) return res.status(404).json({ message: "User closet not found" });
+        if (!closet) return res.status(404).json({ message: "User closet not found" });
 
         // Clear the history array
         closet.history = [];
