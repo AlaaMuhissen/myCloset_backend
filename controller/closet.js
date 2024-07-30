@@ -29,7 +29,7 @@ export const getUserCategoryItems = async (req, res) => {
         const { userId , category} = req.params;
        
         const closet = await Closet.findOne({ userId });
-        if (!closet) return res.status(404).json({ message: "Item not found" });
+        // if (!closet) return res.status(404).json({ message: "Item not found" });
         res.status(200).json(closet.categories[category]);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -42,13 +42,13 @@ export const getUserSubCategoryItems = async (req, res) => {
         const closet = await Closet.findOne({ userId });
         
         if (!closet) {
-            return res.status(404).json({ message: "Closet not found" });
+            // return res.status(404).json({ message: "Closet not found" });
         }
         
         const items = closet.categories?.[category]?.[subCategory];
         
         if (!items) {
-            return res.status(404).json({ message: "Category or subcategory not found" });
+            // return res.status(404).json({ message: "Category or subcategory not found" });
         }
 
         // Convert nested object to array for easier handling in the response
@@ -66,13 +66,13 @@ export const getUserSubCategorySpecificItems = async (req, res) => {
         const closet = await Closet.findOne({ userId });
         
         if (!closet) {
-            return res.status(404).json({ message: "Closet not found" });
+            // return res.status(404).json({ message: "Closet not found" });
         }
         
         const item = closet.categories?.[category]?.[subCategory].get(itemId);
         
         if (!item) {
-            return res.status(404).json({ message: "Category or subcategory not found" });
+            // return res.status(404).json({ message: "Category or subcategory not found" });
         }
 
         // Convert nested object to array for easier handling in the response
@@ -90,11 +90,11 @@ export const deleteClotheItem = async (req, res) => {
         const { itemsId } = req.body; //clothe items ids
 
         const closet = await Closet.findOne({ userId });
-        if (!closet) return res.status(404).json({ message: "Item not found" });
+        // if (!closet) return res.status(404).json({ message: "Item not found" });
 
         const items = closet.categories?.[category]?.[subCategory];
         if (!items) {
-            return res.status(404).json({ message: "There are no outfits" });
+            // return res.status(404).json({ message: "There are no outfits" });
         }
         
         // Iterate over itemsId and delete the corresponding entries from the outfits map
@@ -115,7 +115,7 @@ export const deleteClotheItem = async (req, res) => {
         );
      
         if (!updatedCloset) {
-            return res.status(404).json({ message: "Closet not found" });
+            // return res.status(404).json({ message: "Closet not found" });
         }
 
         res.status(200).json({ message: 'Clothes deleted successfully', closet: updatedCloset });
@@ -148,7 +148,7 @@ export const addNewClotheItem = async (req, res) => {
         const closet = await Closet.findOne({ userId });
 
         if (!closet) {
-            return res.status(404).json({ message: "Closet not found" });
+            // return res.status(404).json({ message: "Closet not found" });
         }
 
         // Add the new item to the appropriate category and subcategory
@@ -172,7 +172,7 @@ export const addNewClotheItem = async (req, res) => {
         );
 
         if (!updatedCloset) {
-            return res.status(404).json({ message: 'Closet not found' });
+            // return res.status(404).json({ message: 'Closet not found' });
         }
        
         
@@ -211,13 +211,13 @@ export const editClotheItem = async (req, res) => {
         );
 
         if (!updatedItem) {
-            return res.status(404).json({ message: 'Closet not found' });
+            // return res.status(404).json({ message: 'Closet not found' });
         }
 
         const updatedOutfit = updatedItem.categories[category][subCategory].get(itemId);
       
         if (!updatedOutfit) {
-            return res.status(404).json({ message: 'Item not found' });
+            // return res.status(404).json({ message: 'Item not found' });
         }
 
         res.status(200).json(updatedOutfit);
@@ -425,7 +425,7 @@ export const filterAndTransformCloset = async (req, res) => {
         const closet = await Closet.findOne({ userId });
 
         if (!closet) {
-            return res.status(404).json({ message: 'Closet not found' });
+            // return res.status(404).json({ message: 'Closet not found' });
         }
 
         const items = closet.categories;
@@ -478,7 +478,7 @@ export const getUserStatistics = async (req, res) => {
     try {
         const userCloset = await Closet.findOne({ userId });
         if (!userCloset) {
-            return res.status(404).send('User closet not found');
+            // return res.status(404).send('User closet not found');
         }
 
         // Calculate the date range for the given period (in weeks)
