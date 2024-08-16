@@ -403,7 +403,7 @@ export const addOutfit = async (req, res) => {
             // return res.status(404).json({ message: 'Closet not found' });
         }
 
-        res.status(201).json({ message: 'Outfit added successfully', closet: updatedCloset });
+        res.status(201).json({ message: 'Outfit added successfully', outfit: newOutfit  });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
