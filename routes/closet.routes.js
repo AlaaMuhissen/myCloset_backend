@@ -7,7 +7,7 @@ const router = Router();
 router.post("/filter/:userId" , filterCloset)
 router.post("/newUser" , addNewUser)
 router.get("/user-statistics/:userId/:period" , getUserStatistics)
-router.post('/filterAndTransformCloset/:userId', filterAndTransformCloset);
+router.post("/filterAndTransformCloset/:userId", filterAndTransformCloset);
 router.get("/getAllColors/:userId" , getClothesColors)
 router.get("/:userId/clothesNumber", getClothesNumber);
 router.get("/:userId", getUserClothes);

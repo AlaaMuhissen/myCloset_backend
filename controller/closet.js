@@ -245,6 +245,7 @@ function filterItems(data, filters, subCategoriesArray) {
                 }
             });
         }
+       
     }
 
   
@@ -398,8 +399,8 @@ const transformFilteredItems = (filteredItems) => {
 
     filteredItems.forEach(item => {
         const { category, subCategory } = item;
-        const { _id, colors } = item._doc;
-
+        const { _id, colors ,imgUrl } = item._doc;
+        
         if (!transformedData[category]) {
             transformedData[category] = {};
         }
@@ -409,7 +410,8 @@ const transformFilteredItems = (filteredItems) => {
         }
 
         transformedData[category][subCategory].push({
-            [_id]: colors
+            [_id]: colors,
+            imgUrl
         });
     });
 
@@ -425,7 +427,7 @@ export const filterAndTransformCloset = async (req, res) => {
         const closet = await Closet.findOne({ userId });
 
         if (!closet) {
-            // return res.status(404).json({ message: 'Closet not found' });
+            return res.status(404).json({ message: 'Closet not found' });
         }
 
         const items = closet.categories;
