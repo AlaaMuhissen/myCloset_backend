@@ -431,7 +431,7 @@ export const filterAndTransformCloset = async (req, res) => {
         }
 
         const items = closet.categories;
-        const filteredItems = filterItems(items, filters, null); // Pass null to check all subcategories
+        const filteredItems = filterItems(items, filters, null); 
        
         const transformedData = transformFilteredItems(filteredItems);
 

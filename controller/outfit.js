@@ -564,15 +564,15 @@ export const getFavoriteOutfit = async (req, res) => {
     try {
         // Find the user's closet
         const closet = await Closet.findOne({ userId });
-        // if (!closet) return res.status(404).json({ message: "User closet not found" });
+        if (!closet) return res.status(404).json({ message: "User closet not found" });
 
         // Check if there are any outfits for the given season
         const seasonOutfits = closet.outfits[season];
-        // if (!seasonOutfits) return res.status(404).json({ message: `No outfits found for ${season}` });
+        if (!seasonOutfits) return res.status(200).json({ favoriteOutfits: [] });
 
         // Find favorite outfits for the given season
         const favoriteOutfits = [];
-        for (const [outfitId, outfitDetails] of seasonOutfits) {
+        for (const [outfitId, outfitDetails] of Object.entries(seasonOutfits)) {
             if (outfitDetails.inFavorite) {
                 favoriteOutfits.push({
                     outfitId: outfitId.toString(),
@@ -582,15 +582,13 @@ export const getFavoriteOutfit = async (req, res) => {
             }
         }
 
-        if (favoriteOutfits.length > 0) {
-            res.status(200).json({ favoriteOutfits });
-        } else {
-            // res.status(404).json({ message: "No favorite outfits found for the given season" });
-        }
+        // Return favorite outfits or an empty array
+        res.status(200).json({ favoriteOutfits });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 export const deleteHistory = async (req, res) => {
     try {
